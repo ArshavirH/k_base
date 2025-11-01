@@ -58,5 +58,6 @@
 - `docs/modulith.md`: Modulith modules and tests.
 - `docs/test-guidelines.md`: detailed testing practices for this repo.
 - `docs/coding-guidelines.md`: full coding rules and conventions.
+- `docs/openapi.yaml`: OpenAPI spec; Swagger UI at `/swagger-ui/index.html`.
 - `src/main/resources/application.yaml`: runtime configuration defaults.
 - `local_stack/docker-compose.yaml`: local Postgres with pgvector.

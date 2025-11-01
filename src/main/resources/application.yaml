@@ -19,3 +19,9 @@ spring:
       api-key: ${OPENAI_API_KEY}
       embedding:
         model: text-embedding-3-large
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

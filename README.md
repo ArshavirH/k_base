@@ -225,4 +225,8 @@ Services:
 * [`docs/coding-guidelines.md`](./docs/coding-guidelines.md) – Code style and conventions
 * [`docs/test-guidelines.md`](./docs/test-guidelines.md) – Testing practices and tips
 
+## 🔎 API Docs (Swagger)
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
 ---
