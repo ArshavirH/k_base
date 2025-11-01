@@ -72,6 +72,7 @@ k_base/
 | Validation       | Jakarta Bean Validation (Spring)          |
 | Utilities        | Apache Commons Lang                       |
 | Testing Data     | Instancio                                |
+| Migrations       | Flyway (SQL-based)                        |
 | Container        | Docker + Compose                          |
 
 ---
@@ -107,6 +108,8 @@ export MCP_KNOWLEDGE_DOCS_PATH=./knowledge
 ```
 
 Server starts on `http://localhost:8080`.
+
+Migrations: place SQL scripts under `src/main/resources/db/migration` (e.g., `V1__init.sql`). Flyway runs on startup.
 
 ---
 

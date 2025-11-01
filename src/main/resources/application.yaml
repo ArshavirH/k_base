@@ -5,9 +5,9 @@ spring:
   application:
     name: k_base
   datasource:
-    url: jdbc:postgresql://localhost:5432/mcpdb
+    url: jdbc:postgresql://localhost:5432/k_base
     username: postgres
-    password: postgres
+    password: user123
   jpa:
     hibernate:
       ddl-auto: update

@@ -34,6 +34,7 @@
 - Boilerplate: Lombok (`@Getter`, `@Setter`, `@Builder`, etc.) — runtime optional; compile-time only.
 - Validation: `spring-boot-starter-validation` with `@Valid` and constraint annotations.
 - Utilities: Apache Commons Lang (`StringUtils`, `Validate`, etc.).
+- Migrations: Flyway SQL scripts in `src/main/resources/db/migration` (e.g., `V1__init.sql`).
 
 ## Testing Guidelines
 - Framework: JUnit 5 via `spring-boot-starter-test`.
