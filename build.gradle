@@ -1,0 +1,115 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '6.25.0'
+    id 'checkstyle'
+    id 'jacoco'
+}
+
+group = 'com.buildware'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    springAiVersion = "1.0.3"
+    springModulithVersion = "1.2.5"
+    mapstructVersion = "1.5.5.Final"
+    lombokVersion = "1.18.30"
+    instancioVersion = "3.6.0"
+    commonsLangVersion = "3.14.0"
+    hypersistenceVersion = "3.7.1"
+    lombokMapstructBindingVersion = "0.2.0"
+    googleJavaFormatVersion = "1.31.0"
+    checkstyleToolVersion = "10.17.0"
+    jacocoToolVersion = "0.8.11"
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.ai:spring-ai-mcp'
+    // Spring Modulith
+    implementation "org.springframework.modulith:spring-modulith-starter-core:${springModulithVersion}"
+    runtimeOnly "org.springframework.modulith:spring-modulith-actuator:${springModulithVersion}"
+    testImplementation "org.springframework.modulith:spring-modulith-starter-test:${springModulithVersion}"
+
+    // Utilities & mapping
+    implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+
+    // Lombok + annotation processors
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
+    implementation 'org.postgresql:postgresql'
+    implementation "io.hypersistence:hypersistence-utils-hibernate-60:${hypersistenceVersion}"
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.instancio:instancio-junit:${instancioVersion}"
+
+    // Test-time annotation processors
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:$springAiVersion"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy tasks.named('jacocoTestReport')
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        googleJavaFormat(googleJavaFormatVersion).aosp()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    format 'misc', {
+        target '.gitignore', '*.md', 'src/**/*.yaml', '**/*.gradle'
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+checkstyle {
+    configFile = rootProject.file('checkstyle/checkstyle.xml')
+    ignoreFailures = false
+    showViolations = true
+    toolVersion = checkstyleToolVersion
+}
+
+tasks.named('check') {
+    dependsOn 'spotlessCheck', 'checkstyleMain', 'checkstyleTest', 'jacocoTestReport'
+}
+
+jacoco {
+    toolVersion = jacocoToolVersion
+}
+
+tasks.named('jacocoTestReport') {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
