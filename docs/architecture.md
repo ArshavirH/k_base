@@ -168,6 +168,8 @@ IngestionService (chunks + embeddings)
 pgvector DB (documents + embeddings)
 ```
 
+Schema changes are managed via Flyway SQL migrations residing in `src/main/resources/db/migration`. Migrations run automatically on application startup.
+
 ### Query Flow
 
 ```

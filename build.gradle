@@ -32,6 +32,7 @@ ext {
     googleJavaFormatVersion = "1.31.0"
     checkstyleToolVersion = "10.17.0"
     jacocoToolVersion = "0.8.11"
+    flywayVersion = "10.17.0"
 }
 
 dependencies {
@@ -39,16 +40,17 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.ai:spring-ai-mcp'
-    // Spring Modulith
+
     implementation "org.springframework.modulith:spring-modulith-starter-core:${springModulithVersion}"
     runtimeOnly "org.springframework.modulith:spring-modulith-actuator:${springModulithVersion}"
     testImplementation "org.springframework.modulith:spring-modulith-starter-test:${springModulithVersion}"
 
-    // Utilities & mapping
+    implementation "org.flywaydb:flyway-core:${flywayVersion}"
+    implementation "org.flywaydb:flyway-database-postgresql:${flywayVersion}"
+
     implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
 
-    // Lombok + annotation processors
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
@@ -60,7 +62,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "org.instancio:instancio-junit:${instancioVersion}"
 
-    // Test-time annotation processors
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"

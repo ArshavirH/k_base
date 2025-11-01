@@ -23,6 +23,12 @@
 ## Testing Data
 - Use Instancio to generate rich test data; keep factories/builders near tests.
 
+## Database Migrations
+- Use Flyway SQL migrations under `src/main/resources/db/migration`.
+- Naming: `V{version or timestamp}__{short_description}.sql` (e.g., `V1__init.sql`).
+- Prefer additive migrations; avoid destructive changes without a deprecation plan.
+- Recommended: set `spring.jpa.hibernate.ddl-auto=validate` once Flyway schema is in place.
+
 ## Naming
 - Packages: lowercase (e.g., `com.buildware.kbase.ingestion`).
 - Classes: PascalCase; methods/fields: camelCase; constants: UPPER_SNAKE_CASE.
