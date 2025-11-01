@@ -34,6 +34,7 @@ ext {
     jacocoToolVersion = "0.8.11"
     flywayVersion = "10.17.0"
     springdocVersion = "2.6.0"
+    testcontainersVersion = "1.20.4"
 }
 
 dependencies {
@@ -64,6 +65,8 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "org.instancio:instancio-junit:${instancioVersion}"
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
 
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -73,6 +76,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.ai:spring-ai-bom:$springAiVersion"
+        mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
     }
 }
 
