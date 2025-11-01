@@ -70,13 +70,6 @@ com.buildware.kbase
 │   ├── AiConfig.java
 │   ├── ApplicationProperties.java
 │   └── LoggingConfig.java
-│
-└── dto/
-    ├── KnowledgeAddRequest.java
-    ├── KnowledgeQueryRequest.java
-    ├── KnowledgeChunkResponse.java
-    ├── ProjectResponse.java
-    └── DomainResponse.java
 ```
 
 ---

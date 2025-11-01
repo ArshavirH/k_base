@@ -1,4 +1,4 @@
-package com.buildware.kbase.testsupport.instancio;
+package com.buildware.kbase.toolkit.instancio;
 
 import static org.instancio.Select.root;
 

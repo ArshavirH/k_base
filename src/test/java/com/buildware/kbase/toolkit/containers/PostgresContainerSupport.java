@@ -1,4 +1,4 @@
-package com.buildware.kbase.testsupport.containers;
+package com.buildware.kbase.toolkit.containers;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
