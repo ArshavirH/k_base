@@ -3,9 +3,9 @@ server:
 
 spring:
   application:
-    name: k_base
+    name: kbase
   datasource:
-    url: jdbc:postgresql://localhost:5432/k_base
+    url: jdbc:postgresql://localhost:5432/kbase
     username: postgres
     password: user123
   jpa:
@@ -25,3 +25,9 @@ springdoc:
     enabled: true
   swagger-ui:
     enabled: true
+  # Enable reading Javadoc descriptions when present (requires Therapi)
+  use-javadoc: true
+
+mcp:
+  knowledge:
+    docs-path: /knowledge

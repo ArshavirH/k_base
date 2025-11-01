@@ -25,14 +25,15 @@
 
 ## Database Migrations
 - Use Flyway SQL migrations under `src/main/resources/db/migration`.
-- Naming: `V{version or timestamp}__{short_description}.sql` (e.g., `V1__init.sql`).
+- Naming: `V{version or timestamp}__{short_description}.sql` (e.g., `V1__create_projects.sql`).
+- Primary keys use UUIDs with `gen_random_uuid()`; ensure `pgcrypto` is enabled in the DB.
 - Prefer additive migrations; avoid destructive changes without a deprecation plan.
 - Recommended: set `spring.jpa.hibernate.ddl-auto=validate` once Flyway schema is in place.
 
 ## Naming
 - Packages: lowercase (e.g., `com.buildware.kbase.ingestion`).
 - Classes: PascalCase; methods/fields: camelCase; constants: UPPER_SNAKE_CASE.
-- Tests end with `Tests` (e.g., `KnowledgeServiceTests`).
+- Tests end with `Test` (e.g., `KnowledgeServiceTest`).
 
 ## Spring & Java Conventions
 - Prefer constructor injection; avoid field injection.
@@ -52,3 +53,4 @@
 ## Formatting & Checks: Recommended Flow
 - Before commit: run `./gradlew spotlessApply` to format.
 - Pre-push/CI: run `./gradlew check` to execute Checkstyle and tests.
+- Checkstyle treats warnings as errors (build fails on violations).

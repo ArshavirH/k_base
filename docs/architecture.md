@@ -1,7 +1,7 @@
 # 🏗️ **Architecture Overview**
 
 > Version: 1.0
-> Project: `k_base`
+> Project: `kbase`
 > Purpose: Knowledge base server for multi-project AI agents (Spring Boot + Spring AI + pgvector)
 
 Note: The current repository bootstraps a Spring Boot app; the module layout below reflects the target design and will be introduced iteratively.
@@ -255,3 +255,7 @@ Each file is a document automatically ingested and indexed.
 | **6. Docs & Admin** | Docs ingestion, admin API, dashboard        | Docs + optional UI                 |
 
 ---
+### Data Model Notes
+
+- Primary keys are UUIDs (generated via `gen_random_uuid()` in PostgreSQL).
+- Enumerations are stored as strings (e.g., `visibility` uses VARCHAR).

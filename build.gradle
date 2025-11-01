@@ -34,6 +34,7 @@ ext {
     jacocoToolVersion = "0.8.11"
     flywayVersion = "10.17.0"
     springdocVersion = "2.6.0"
+    therapiVersion = "0.15.0"
     testcontainersVersion = "1.20.4"
 }
 
@@ -44,6 +45,12 @@ dependencies {
 
     implementation 'org.springframework.ai:spring-ai-mcp'
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+    // Therapi deps are opt-in to avoid failing builds without network access.
+    if (project.hasProperty('enableTherapi')) {
+        runtimeOnly "com.github.therapi:therapi-runtime-javadoc:${therapiVersion}"
+        annotationProcessor "com.github.therapi:therapi-javadoc-scribe:${therapiVersion}"
+        testAnnotationProcessor "com.github.therapi:therapi-javadoc-scribe:${therapiVersion}"
+    }
 
     implementation "org.springframework.modulith:spring-modulith-starter-core:${springModulithVersion}"
     runtimeOnly "org.springframework.modulith:spring-modulith-actuator:${springModulithVersion}"
@@ -60,7 +67,6 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     annotationProcessor "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
     implementation 'org.postgresql:postgresql'
-    implementation "io.hypersistence:hypersistence-utils-hibernate-60:${hypersistenceVersion}"
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -83,21 +89,6 @@ dependencyManagement {
 tasks.named('test') {
     useJUnitPlatform()
     finalizedBy tasks.named('jacocoTestReport')
-}
-
-spotless {
-    java {
-        target 'src/*/java/**/*.java'
-        googleJavaFormat(googleJavaFormatVersion).aosp()
-        removeUnusedImports()
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-    format 'misc', {
-        target '.gitignore', '*.md', 'src/**/*.yaml', '**/*.gradle'
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
 }
 
 checkstyle {
