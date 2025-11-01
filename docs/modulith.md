@@ -15,15 +15,15 @@ Spring Modulith enforces clear module boundaries inside the Spring Boot app and 
 Example root module annotation:
 
 ```java
-// src/main/java/com/buildware/k_base/package-info.java
-@org.springframework.modulith.ApplicationModule(displayName = "k_base Root")
-package com.buildware.k_base;
+// src/main/java/com/buildware/kbase/package-info.java
+@org.springframework.modulith.ApplicationModule(displayName = "kbase Root")
+package com.buildware.kbase;
 ```
 
 Example test:
 
 ```java
-// src/test/java/com/buildware/k_base/ModularityTests.java
+// src/test/java/com/buildware/kbase/ModularityTests.java
 @ApplicationModuleTest
 class ModularityTests {
   @Test void noCycles(ModularityFixture fixture) { fixture.assertNoCycles(); }
@@ -38,7 +38,7 @@ To add a new module, create `package-info.java` in the module package:
 
 ```java
 @ApplicationModule(displayName = "Ingestion")
-package com.buildware.k_base.ingestion;
+package com.buildware.kbase.ingestion;
 
 import org.springframework.modulith.ApplicationModule;
 ```

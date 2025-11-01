@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/main/java/com/buildware/k_base/`: Spring Boot application code (`Application.java`).
+- `src/main/java/com/buildware/kbase/`: Spring Boot application code (`Application.java`).
 - `src/main/resources/`: configuration (e.g., `application.yaml`).
 - `src/test/java/`: JUnit tests mirroring main package paths.
 - `local_stack/docker-compose.yaml`: local Postgres (pgvector) for development.
@@ -12,12 +12,12 @@
 - `./gradlew clean build`: compile, run checks, and package the app.
 - `./gradlew bootRun`: start the Spring Boot server on `:8080`.
 - `./gradlew test`: run unit/integration tests (JUnit 5).
-- `./gradlew checkstyleMain checkstyleTest` or `./gradlew check`: run Checkstyle with custom rules in `checkstyle/checkstyle.xml`.
+- `./gradlew checkstyleMain checkstyleTest` or `./gradlew check`: run Checkstyle with custom rules in `checkstyle/checkstyle.xml` (warnings are treated as errors).
 - `./gradlew jacocoTestReport`: generate coverage report at `build/reports/jacoco/test/html/index.html`.
 - `docker compose -f local_stack/docker-compose.yaml up -d`: start local Postgres.
 - Environment overrides (examples):
   - `OPENAI_API_KEY=...` (required for embeddings)
-  - `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/k_base`
+  - `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/kbase`
   - `SPRING_DATASOURCE_USERNAME=postgres` `SPRING_DATASOURCE_PASSWORD=user123`
   - Versions are centralized in `build.gradle` under the `ext` block.
 
@@ -34,13 +34,41 @@
 - Boilerplate: Lombok (`@Getter`, `@Setter`, `@Builder`, etc.) — runtime optional; compile-time only.
 - Validation: `spring-boot-starter-validation` with `@Valid` and constraint annotations.
 - Utilities: Apache Commons Lang (`StringUtils`, `Validate`, etc.).
-- Migrations: Flyway SQL scripts in `src/main/resources/db/migration` (e.g., `V1__init.sql`).
+- Migrations: Flyway SQL scripts in `src/main/resources/db/migration` (e.g., `V1__create_projects.sql`). Primary keys use UUIDs; ensure `pgcrypto` is enabled.
 
 ## Testing Guidelines
-- Framework: JUnit 5 via `spring-boot-starter-test`.
-- Location: `src/test/java/...` mirroring main packages; name files `*Tests.java` (e.g., `ApplicationTests.java`).
-- Use `@SpringBootTest` for integration, `@WebMvcTest` for MVC slices, and mocks for unit tests.
-- Run locally with `./gradlew test`; add tests for controllers, services, and repository logic.
+
+- Tests should be written in the `src/test/java` directory
+  - With the same package structure as the main code
+  - Name the test class with `*Test`, e.g., `ProductServiceTest`.
+- Use JUnit 5 for writing unit tests.
+- Use `@Nested` for nested classes to group related tests.
+  - The nested class should not end with `Test`
+  - Grouping by method-under-test is a common practice, but not mandatory.
+  - Only perform grouping if it makes sense for the test structure. Don't add it if it is the only one in the test class.
+- Follow BDD (Behavior Driven Development) principles.
+  - Name methods with `should_` and `_when_` to describe the behavior, e.g., `should_returnProduct_when_validIdIsProvided`.
+  - Add comments `//GIVEN`, `//WHEN`, `//THEN` to describe the test setup, action, and expected outcome.
+  - GIVEN-block: prepare the test data and mock dependencies
+  - WHEN-block: execute the method under test and capture the result, nothing else
+  - THEN-block: assert the result and verify interactions with mocks
+- Assert exclusively with AssertJ assertions.
+  - Use static `assertThat` import for better readability.
+  - Use `catchThrowable` in WHEN-block to capture exceptions and assert them in THEN-block.
+- Use Mockito for mocking dependencies
+  - Prefer using `@Mock` and `@InjectMocks` annotations if possible.
+  - Add `@ExtendWith(MockitoExtension.class)` to the test class.
+- Use Instancio for generating test data.
+  - Add `@ExtendWith(InstancioExtension.class)` to the test class.
+  - Prefer Instancio built-ins; no external helper utilities required.
+### MockitoBean Migration
+- Use `@MockitoBean` from `org.springframework.boot.test.mock.mockito.MockitoBean` in all Spring test slices instead of `@MockBean`.
+- `@MockBean` is deprecated and should not be used in new tests.
+
+### Coverage
+- Generate a coverage report: `./gradlew jacocoTestReport` → `build/reports/jacoco/test/html/index.html`.
+- Aim for meaningful coverage of services and controllers; avoid chasing percentage metrics.
+
 
 ## Commit & Pull Request Guidelines
 - Commits: follow Conventional Commits (e.g., `feat: add query endpoint`, `fix: handle null projectCode`).
@@ -49,15 +77,14 @@
 
 ## Security & Configuration Tips
 - Never commit secrets; supply via env vars (e.g., `OPENAI_API_KEY`).
-- Local DB defaults differ: Docker stack uses DB `k_base`/password `user123`; adjust Spring `datasource` via env.
+- Local DB defaults differ: Docker stack uses DB `kbase`/password `user123`; adjust Spring `datasource` via env.
 - If using pgvector, ensure `CREATE EXTENSION IF NOT EXISTS vector;` is enabled on the database.
 
 ## Related Docs
 - `README.md`: project overview and endpoints.
 - `docs/architecture.md`: high-level design and module plan.
 - `docs/modulith.md`: Modulith modules and tests.
-- `docs/test-guidelines.md`: detailed testing practices for this repo.
 - `docs/coding-guidelines.md`: full coding rules and conventions.
-- `docs/openapi.yaml`: OpenAPI spec; Swagger UI at `/swagger-ui/index.html`.
+- OpenAPI available at runtime via Swagger UI at `/swagger-ui/index.html`.
 - `src/main/resources/application.yaml`: runtime configuration defaults.
 - `local_stack/docker-compose.yaml`: local Postgres with pgvector.

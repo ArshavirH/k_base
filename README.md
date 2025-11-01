@@ -41,7 +41,7 @@ See [`docs/architecture.md`](./docs/architecture.md) for detailed module layout 
 ## 📁 Project Structure
 
 ```
-k_base/
+kbase/
 ├── README.md
 ├── AGENTS.md
 ├── docs/
@@ -50,8 +50,8 @@ k_base/
 ├── local_stack/
 │   └── docker-compose.yaml   # Local Postgres (pgvector)
 ├── src/
-│   ├── main/java/com/buildware/k_base/...
-│   └── test/java/com/buildware/k_base/...
+│   ├── main/java/com/buildware/kbase/...
+│   └── test/java/com/buildware/kbase/...
 └── build.gradle
 ```
 
@@ -95,7 +95,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 ```bash
 export OPENAI_API_KEY=sk-xxxx
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/k_base
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/kbase
 export SPRING_DATASOURCE_USERNAME=postgres
 export SPRING_DATASOURCE_PASSWORD=user123
 export MCP_KNOWLEDGE_DOCS_PATH=./knowledge
@@ -109,7 +109,7 @@ export MCP_KNOWLEDGE_DOCS_PATH=./knowledge
 
 Server starts on `http://localhost:8080`.
 
-Migrations: place SQL scripts under `src/main/resources/db/migration` (e.g., `V1__init.sql`). Flyway runs on startup.
+Migrations: place SQL scripts under `src/main/resources/db/migration` (e.g., `V1__create_projects.sql`). Flyway runs on startup. Primary keys use UUIDs (`gen_random_uuid()`); ensure the `pgcrypto` extension is available.
 
 ---
 
@@ -201,8 +201,7 @@ docker compose up -d
 
 Services:
 
-* `postgres` with pgvector
-* `mcp-server` container
+* `postgres` with pgvector (via `local_stack/docker-compose.yaml`)
 
 ---
 
@@ -228,5 +227,6 @@ Services:
 ## 🔎 API Docs (Swagger)
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- Optional Javadoc enrichment: enable Therapi by building with `-PenableTherapi`.
 
 ---
