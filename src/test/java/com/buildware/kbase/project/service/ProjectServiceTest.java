@@ -11,9 +11,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import org.instancio.junit.InstancioExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,6 +25,12 @@ class ProjectServiceTest {
     @Mock
     private ProjectRepository repo;
 
+    @Mock
+    private KnowledgeProperties knowledgeProperties;
+
+    @InjectMocks
+    private ProjectService projectService;
+
     @Test
     void should_syncProjects_when_directoriesExist() throws IOException {
         // GIVEN
@@ -30,14 +38,12 @@ class ProjectServiceTest {
         Files.createDirectories(temp.resolve("buildware"));
         Files.createDirectories(temp.resolve("gift-boxes"));
 
-        when(repo.findByCode(any())).thenReturn(java.util.Optional.empty());
+        when(repo.findByCode(any())).thenReturn(Optional.empty());
         when(repo.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
-
-        KnowledgeProperties props = new KnowledgeProperties(temp.toString());
-        ProjectService service = new ProjectService(repo, props);
+        when(knowledgeProperties.docsPath()).thenReturn(temp.toString());
 
         // WHEN
-        List<Project> saved = service.syncFromFilesystem();
+        List<Project> saved = projectService.syncFromFilesystem();
 
         // THEN
         assertThat(saved).hasSize(2);

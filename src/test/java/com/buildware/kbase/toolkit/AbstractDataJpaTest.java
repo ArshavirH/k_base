@@ -1,6 +1,6 @@
-package com.buildware.kbase.testsupport;
+package com.buildware.kbase.toolkit;
 
-import com.buildware.kbase.testsupport.containers.PostgresContainerSupport;
+import com.buildware.kbase.toolkit.containers.PostgresContainerSupport;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
