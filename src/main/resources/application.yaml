@@ -15,19 +15,27 @@ spring:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
 
   ai:
+    vector-store:
+      pgvector:
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        dimensions: 1536
+        max-document-batch-size: 10000
+        #        schema-validation: true looks this happens after initialize schema
+        initialize-schema: true
+        schema-name: vector_store
     openai:
-      api-key: ${OPENAI_API_KEY}
+      api-key: ${OPENAI_API_KEY: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}
       embedding:
-        model: text-embedding-3-large
+        options:
+          model: text-embedding-3-small
 
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
     enabled: true
-  # Enable reading Javadoc descriptions when present (requires Therapi)
-  use-javadoc: true
 
 mcp:
   knowledge:
-    docs-path: /knowledge
+    docs-path: /Users/arshavirhunanyan/projects/personal/k_base/docs

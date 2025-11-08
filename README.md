@@ -107,7 +107,7 @@ export MCP_KNOWLEDGE_DOCS_PATH=./knowledge
 ./gradlew bootRun
 ```
 
-Server starts on `http://localhost:8080`.
+Server starts on `http://localhost:8081` (configurable via `server.port`).
 
 Migrations: place SQL scripts under `src/main/resources/db/migration` (e.g., `V1__create_projects.sql`). Flyway runs on startup. Primary keys use UUIDs (`gen_random_uuid()`); ensure the `pgcrypto` extension is available.
 
@@ -115,17 +115,19 @@ Migrations: place SQL scripts under `src/main/resources/db/migration` (e.g., `V1
 
 ## 📡 Key Endpoints
 
-| Method | Path                   | Description                      |
-| ------ | ---------------------- | -------------------------------- |
-| `POST` | `/mcp/knowledge/add`   | Add a document manually          |
-| `POST` | `/mcp/knowledge/query` | Semantic query by project/domain |
-| `GET`  | `/mcp/projects`        | List available projects          |
-| `GET`  | `/mcp/health`          | Health check                     |
+| Method | Path                         | Description                                 |
+| ------ | ---------------------------- | ------------------------------------------- |
+| `POST` | `/mcp/knowledge/query`       | Semantic query by project/domain            |
+| `POST` | `/mcp/knowledge/sync`        | Sync all projects from filesystem           |
+| `POST` | `/mcp/knowledge/sync/{code}` | Sync a single project by code               |
+| `GET`  | `/mcp/projects`              | List available projects                     |
+| `POST` | `/mcp/projects/sync`         | Discover projects from knowledge base path  |
+| `GET`  | `/mcp/health`                | Health check                                |
 
 Example:
 
 ```bash
-curl -X POST http://localhost:8080/mcp/knowledge/query \
+curl -X POST http://localhost:8081/mcp/knowledge/query \
   -H "Content-Type: application/json" \
   -d '{"projectCode":"cormit","query":"Explain data flow architecture"}'
 ```
