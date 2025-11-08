@@ -5,13 +5,21 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 public abstract class PostgresContainerSupport {
 
+    private static final String DEFAULT_IMAGE = "arshavirh/postgres-pgvector:1.2.0";
+    private static final String IMAGE_ENV = "TEST_POSTGRES_IMAGE";
+
     @Container
     @SuppressWarnings("resource")
-    public static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
+    public static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
+        DockerImageName
+            .parse(System.getenv().getOrDefault(IMAGE_ENV, DEFAULT_IMAGE))
+            .asCompatibleSubstituteFor("postgres")
+    )
         .withDatabaseName("kbase")
         .withUsername("postgres")
         .withPassword("user123");

@@ -21,9 +21,9 @@ spring:
         distance-type: COSINE_DISTANCE
         dimensions: 1536
         max-document-batch-size: 10000
-        #        schema-validation: true looks this happens after initialize schema
-        initialize-schema: true
-        schema-name: vector_store
+        schema-validation: true
+        schema-name: public
+        table-name: vector_store
     openai:
       api-key: ${OPENAI_API_KEY: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}
       embedding:
