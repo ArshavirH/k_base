@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 30
 
     env:
-      OPENAI_API_KEY: dummy-test-key
+      TEST_POSTGRES_IMAGE: arshavirh/postgres-pgvector:1.2.0
 
     steps:
       - name: Checkout
@@ -41,13 +41,13 @@ jobs:
         run: ./gradlew --no-daemon clean
 
       - name: Check
-        run: ./gradlew --no-daemon check
+        run: ./gradlew --no-daemon --stacktrace check
 
       - name: Build
-        run: ./gradlew --no-daemon build
+        run: ./gradlew --no-daemon --stacktrace build
 
       - name: Test coverage (JaCoCo)
-        run: ./gradlew --no-daemon jacocoTestReport
+        run: ./gradlew --no-daemon --stacktrace jacocoTestReport
 
       - name: Upload test reports
         if: always()
