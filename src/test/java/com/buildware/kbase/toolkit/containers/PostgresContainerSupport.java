@@ -11,13 +11,12 @@ import org.testcontainers.utility.DockerImageName;
 public abstract class PostgresContainerSupport {
 
     private static final String DEFAULT_IMAGE = "arshavirh/postgres-pgvector:1.2.0";
-    private static final String IMAGE_ENV = "TEST_POSTGRES_IMAGE";
 
     @Container
     @SuppressWarnings("resource")
     public static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
         DockerImageName
-            .parse(System.getenv().getOrDefault(IMAGE_ENV, DEFAULT_IMAGE))
+            .parse(DEFAULT_IMAGE)
             .asCompatibleSubstituteFor("postgres")
     )
         .withDatabaseName("kbase")
