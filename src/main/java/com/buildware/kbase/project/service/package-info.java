@@ -1,8 +1,6 @@
 @ApplicationModule(
     displayName = "Project Service",
-    allowedDependencies = {
-        "project.repository", "config", "project.domain"
-    }
+    allowedDependencies = {"config", "spi", "project.repository", "project.domain"}
 )
 package com.buildware.kbase.project.service;
 

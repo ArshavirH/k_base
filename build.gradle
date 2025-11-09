@@ -44,13 +44,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
     implementation 'org.springframework.ai:spring-ai-mcp'
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+    implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
-    // Therapi deps are opt-in to avoid failing builds without network access.
-    if (project.hasProperty('enableTherapi')) {
-        runtimeOnly "com.github.therapi:therapi-runtime-javadoc:${therapiVersion}"
-        annotationProcessor "com.github.therapi:therapi-javadoc-scribe:${therapiVersion}"
-        testAnnotationProcessor "com.github.therapi:therapi-javadoc-scribe:${therapiVersion}"
-    }
+
+    annotationProcessor "com.github.therapi:therapi-runtime-javadoc-scribe:$therapiVersion"
+    implementation "com.github.therapi:therapi-runtime-javadoc:${therapiVersion}"
+
 
     implementation "org.springframework.modulith:spring-modulith-starter-core:${springModulithVersion}"
     runtimeOnly "org.springframework.modulith:spring-modulith-actuator:${springModulithVersion}"

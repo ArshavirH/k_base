@@ -4,10 +4,6 @@ server:
 spring:
   application:
     name: kbase
-  datasource:
-    url: jdbc:postgresql://localhost:5432/kbase
-    username: postgres
-    password: user123
   jpa:
     hibernate:
       ddl-auto: none
@@ -25,10 +21,7 @@ spring:
         schema-name: public
         table-name: vector_store
     openai:
-      api-key: ${OPENAI_API_KEY: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}
-      embedding:
-        options:
-          model: text-embedding-3-small
+      api-key: fake-key
 
 springdoc:
   api-docs:
@@ -38,7 +31,7 @@ springdoc:
 
 mcp:
   knowledge:
-    docs-path: /Users/arshavirhunanyan/projects/personal/k_base/docs
+    docs-path: docs
 
 logging:
   level:
