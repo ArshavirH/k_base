@@ -1,234 +1,107 @@
 # 🧠 MCP Knowledge Server
 
-> Multi-project semantic knowledge-base server built with **Spring Boot**, **Spring AI**, and **pgvector**.
-> Ingests Markdown and PDF documents, embeds them using OpenAI models, and exposes them via **MCP-compatible APIs** for AI agents.
+> A persistent, semantic memory layer for AI agents and human teams.
+> Built with Spring Boot, Spring AI, and pgvector.
 
 ---
 
-## 🚀 Overview
+## 🌍 Overview
 
-The MCP Knowledge Server enables AI agents (or humans) to query rich project documentation — business plans, architecture docs, technical guides, etc. — semantically rather than by keywords.
+The **MCP Knowledge Server** provides a shared, intelligent knowledge base that allows AI agents and developers to **store, retrieve, and evolve project context** over time.
 
-It is designed to serve multiple projects (e.g. Cormit, Buildware, GiftBoxes) from a single instance.
-
----
-
-## ⚙️ Features
-
-✅ Multi-project knowledge domains
-✅ Automatic ingestion of Markdown and PDF files
-✅ Semantic search via Spring AI embeddings + pgvector
-✅ MCP tool integration for AI agents (`@McpTool`)
-✅ Configurable scheduler for auto-re-indexing
-✅ Extensible design for Auth, Caching, and Admin UI
+Instead of re-feeding long prompts or losing context between sessions, agents can query and update a central **semantic memory**, gaining true continuity and collaboration across tools, projects, and teams.
 
 ---
 
-## 🧩 Architecture Snapshot
+## 💡 Core Purpose
 
-```
-FileSystem → Parser → Embedding → pgvector → REST/MCP API → AI Agent
-```
-
-* **Ingestion Layer:** Reads Markdown/PDF files → chunks → embeds → stores in DB
-* **Query Layer:** Receives user query → embeds query → semantic match against pgvector
-* **MCP Layer:** Exposes protocol-compliant tools for agent consumption
-
-See [`docs/architecture.md`](./docs/architecture.md) for detailed module layout and data flow.
+| Goal                        | Description                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| **Long-term Memory**        | Persist domain knowledge, rules, and context beyond one conversation or session.      |
+| **On-Demand Retrieval**     | Agents fetch only what’s relevant through semantic search — no token overload.        |
+| **Context Persistence**     | Agents can write back new findings, summaries, or decisions to enrich the database.   |
+| **Unified Knowledge Layer** | Integrate Jira issues, GitHub PRs, docs, and notes into one semantic space.           |
+| **Multi-Project Support**   | Each project (e.g., *Cormit*, *Buildware*, *GiftBoxes*) has its own knowledge domain. |
 
 ---
 
-## 📁 Project Structure
+## 🧩 Concept Diagram
 
-```
-kbase/
-├── README.md
-├── AGENTS.md
-├── docs/
-│   ├── architecture.md
-│   └── test-guidelines.md
-├── local_stack/
-│   └── docker-compose.yaml   # Local Postgres (pgvector)
-├── src/
-│   ├── main/java/com/buildware/kbase/...
-│   └── test/java/com/buildware/kbase/...
-└── build.gradle
-```
-
----
-
-## 🧱 Core Technologies
-
-| Component        | Technology                                |
-| ---------------- | ----------------------------------------- |
-| Backend          | Spring Boot 3.3 ( Java 21 )               |
-| AI Embeddings    | Spring AI (OpenAI text-embedding-3-large) |
-| Database         | PostgreSQL + pgvector                     |
-| Document Parsing | Flexmark (Markdown), Apache PDFBox (PDF)  |
-| Protocol         | Model Context Protocol (MCP)              |
-| Modularity       | Spring Modulith                           |
-| Mapping          | MapStruct                                 |
-| Boilerplate      | Lombok (compile-only)                     |
-| Validation       | Jakarta Bean Validation (Spring)          |
-| Utilities        | Apache Commons Lang                       |
-| Testing Data     | Instancio                                |
-| Migrations       | Flyway (SQL-based)                        |
-| Container        | Docker + Compose                          |
-
----
-
-## 🛠️ Setup & Run
-
-### 1️⃣ Prerequisites
-
-* Java 21
-* PostgreSQL 16 + pgvector extension
-* OpenAI API key
-
-Enable pgvector:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
-```
-
-### 2️⃣ Environment Variables
-
-```bash
-export OPENAI_API_KEY=sk-xxxx
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/kbase
-export SPRING_DATASOURCE_USERNAME=postgres
-export SPRING_DATASOURCE_PASSWORD=user123
-export MCP_KNOWLEDGE_DOCS_PATH=./knowledge
-```
-
-### 3️⃣ Run with Gradle
-
-```bash
-./gradlew bootRun
-```
-
-Server starts on `http://localhost:8081` (configurable via `server.port`).
-
-Migrations: place SQL scripts under `src/main/resources/db/migration` (e.g., `V1__create_projects.sql`). Flyway runs on startup. Primary keys use UUIDs (`gen_random_uuid()`); ensure the `pgcrypto` extension is available.
-
----
-
-## 📡 Key Endpoints
-
-| Method | Path                         | Description                                 |
-| ------ | ---------------------------- | ------------------------------------------- |
-| `POST` | `/mcp/knowledge/query`       | Semantic query by project/domain            |
-| `POST` | `/mcp/knowledge/sync`        | Sync all projects from filesystem           |
-| `POST` | `/mcp/knowledge/sync/{code}` | Sync a single project by code               |
-| `GET`  | `/mcp/projects`              | List available projects                     |
-| `POST` | `/mcp/projects/sync`         | Discover projects from knowledge base path  |
-| `GET`  | `/mcp/health`                | Health check                                |
-
-Example:
-
-```bash
-curl -X POST http://localhost:8081/mcp/knowledge/query \
-  -H "Content-Type: application/json" \
-  -d '{"projectCode":"cormit","query":"Explain data flow architecture"}'
+```plaintext
+ ┌──────────────────────────┐
+ │    Human / AI Agent      │
+ │ (Copilot, Codex, Claude) │
+ └─────────────┬────────────┘
+               │
+        MCP Protocol (Streamable HTTP)
+               │
+               ▼
+ ┌──────────────────────────────┐
+ │     MCP Knowledge Server      │
+ │  - queryKnowledge(project,q)  │
+ │  - persistContext(project,c)  │
+ │  - syncSources(project)       │
+ └─────────────┬────────────────┘
+               │
+ ┌─────────────┴──────────────┐
+ │        pgvector DB         │
+ │  (docs, embeddings, memory)│
+ └─────────────┬──────────────┘
+               │
+     ┌────────────────────────┐
+     │  External Sources (API) │
+     │  Jira, GitHub, Docs     │
+     └────────────────────────┘
 ```
 
 ---
 
-## 🤖 Development Agents
+## ⚙️ How It Works
 
-AI assistants collaborate on this codebase.
-See [`AGENTS.md`](./AGENTS.md) for full roles and prompts.
-
-| Agent           | Responsibility                     |
-| --------------- | ---------------------------------- |
-| architect-agent | Designs modules & data models      |
-| codegen-agent   | Implements controllers & services  |
-| data-agent      | Builds ingestion & embedding logic |
-| docs-agent      | Maintains documentation            |
-| mcp-agent       | Ensures MCP compliance             |
-| qa-agent        | Tests & validates                  |
-| devops-agent    | CI/CD & deployment                 |
+1. **Ingestion** – Markdown, PDFs, Jira tickets, and PRs are parsed and embedded into pgvector.
+2. **Retrieval** – Agents use MCP tools (`queryKnowledge`) to fetch semantically matched data.
+3. **Persistence** – Agents store new insights (`persistContext`) to extend the knowledge base.
+4. **Synchronization** – External project data stays up to date through periodic sync.
 
 ---
 
-## 🧠 Projects as Knowledge Domains
+## 🧠 Agent Capabilities
 
-Each project has its own folder under `/knowledge` and is auto-discovered.
+| Action           | Description                                                        |
+| ---------------- | ------------------------------------------------------------------ |
+| `queryKnowledge` | Retrieve relevant project knowledge for reasoning or coding tasks. |
+| `persistContext` | Write summaries, explanations, or decisions back to memory.        |
+| `syncSources`    | Re-index project data from connected systems (Jira, GitHub, etc.). |
 
-| Project   | Domain Tags                      |
-| --------- | -------------------------------- |
-| Cormit    | tech, implementation, monitoring |
-| Buildware | business, devops, marketing      |
-| LegalDocs | legal, workflow                  |
-| GiftBoxes | design, marketing                |
-
----
-
-## 🧩 MCP Integration
-
-* Implements Model Context Protocol for tool exposure.
-* Spring AI’s `@McpTool` annotation registers tools automatically.
-* Agents can discover available tools via the manifest endpoint.
-
-Example MCP tool:
-
-```java
-@McpTool(name="KnowledgeQuery",description="Query knowledge base by project and text")
-public List<KnowledgeChunkResponse> invoke(String projectCode,String query){...}
-```
+Agents can collaborate around the same persistent memory, sharing domain-specific vocabulary, design rules, and task knowledge.
 
 ---
 
-## 🧪 Testing
+## 🌱 Example Use Cases
 
-```bash
-./gradlew test
-./gradlew jacocoTestReport  # generate coverage (HTML + XML)
-```
-
-Includes unit and integration tests for:
-
-* Ingestion Pipeline
-* Semantic Search
-* Controller APIs
-* MCP Tool Compliance
+* **Development:** Codex agent learns project conventions and architectures.
+* **Documentation:** Docs agent updates long-term knowledge after changes.
+* **PM Tools:** Jira or GitHub data flows into the shared memory automatically.
+* **Research/Analysis:** Agents correlate tickets, commits, and docs to summarize progress.
 
 ---
 
-## 🐳 Docker Deployment (coming soon)
+## 🔮 Vision & Roadmap
 
-```bash
-docker compose up -d
-```
-
-Services:
-
-* `postgres` with pgvector (via `local_stack/docker-compose.yaml`)
-
----
-
-## 📈 Roadmap
-
-1. ✅ Core MVP — project-based ingestion + query
-2. 🧩 Add scheduler for auto re-ingestion
-3. 🔒 Integrate Auth layer (API keys / tokens)
-4. 📊 Add observability (Prometheus + Grafana)
-5. 🧠 Build React Admin Dashboard
-6. ☁️ Deploy to AWS/Azure ECS/EKS
+| Phase           | Focus                                                  |
+| --------------- | ------------------------------------------------------ |
+| **MVP**         | Semantic ingestion + query by project                  |
+| **Next**        | Agent write-back for persistent context                |
+| **Integration** | Jira / GitHub / Slack sync connectors                  |
+| **Evolution**   | Automatic summarization & long-term memory compression |
+| **UX**          | Admin & observability dashboard                        |
+| **Future**      | Secure multi-tenant access & fine-grained auth         |
 
 ---
 
-## 📚 Reference Docs
+## 💬 Summary
 
-* [`AGENTS.md`](./AGENTS.md) – AI collaboration roles and prompts
-* [`docs/architecture.md`](./docs/architecture.md) – System design and module blueprint
-* [`docs/modulith.md`](./docs/modulith.md) – Spring Modulith setup and usage
-* [`docs/coding-guidelines.md`](./docs/coding-guidelines.md) – Code style and conventions
-* [`docs/test-guidelines.md`](./docs/test-guidelines.md) – Testing practices and tips
+The **MCP Knowledge Server** bridges the gap between *ephemeral AI prompts* and *persistent organizational memory*.
+It allows agents to **think with context, learn over time**, and **collaborate across projects** through a unified, semantic knowledge base.
 
-## 🔎 API Docs (Swagger)
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-- Optional Javadoc enrichment: enable Therapi by building with `-PenableTherapi`.
-
----
+> It’s not just retrieval — it’s the foundation of *continuous, contextual intelligence* for every AI-driven workflow.

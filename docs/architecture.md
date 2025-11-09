@@ -1,200 +1,106 @@
-# 🏗️ **Architecture Overview**
+# 🏗️ Architecture Overview
 
-> Version: 1.0
-> Project: `kbase`
-> Purpose: Knowledge base server for multi-project AI agents (Spring Boot + Spring AI + pgvector)
+> Project: `kbase` — Knowledge base server for multi-project AI agents (Spring Boot + Spring AI + pgvector)
 
-Note: The current repository bootstraps a Spring Boot app; the module layout below reflects the target design and will be introduced iteratively.
+This document reflects the current implementation in the repository.
 
 ---
 
-## 🧱 **1. System Components**
+## 1) System Components
 
-| Layer                    | Description                                           | Key Modules                        |
-| ------------------------ | ----------------------------------------------------- | ---------------------------------- |
-| **Core Layer**           | Handles core entities, repositories, and data model   | `project`, `knowledge`, `chunk`    |
-| **AI Layer**             | Embeddings, semantic search, and MCP tool integration | `ai`, `embedding`, `mcp`           |
-| **Ingestion Layer**      | Parses Markdown/PDF, chunks text, and saves data      | `ingestion`, `parser`, `scheduler` |
-| **API Layer**            | Exposes REST + MCP endpoints for agents               | `controller`, `dto`, `config`      |
-| **Infrastructure Layer** | PostgreSQL + pgvector integration, Docker, CI/CD      | `infrastructure`, `devops`         |
-| **Docs & Config**        | Markdown docs, configuration YAML, and metadata       | `/docs`, `/knowledge`, `/config`   |
+| Layer          | Description                                             | Key Packages                      |
+| -------------- | ------------------------------------------------------- | --------------------------------- |
+| Core           | Projects catalog + vector search services               | `project`, `knowledge`            |
+| Sync           | Filesystem scan, chunking (TokenTextSplitter), upserts | `knowledge.service`               |
+| API            | REST controllers + DTO mapping                          | `project.web`, `knowledge.web`    |
+| Config         | OpenAPI, knowledge path config                          | `config`                          |
+| SPI            | Project lookup abstraction                              | `spi`                             |
+
+Spring Modulith annotations in `package-info.java` document module boundaries. See `docs/modulith.md`.
 
 ---
 
-## 🧩 **2. Package Layout**
-
-This project adopts Spring Modulith. Each top-level feature forms a module (package) annotated via `package-info.java` with `@ApplicationModule`. Modules communicate via well-defined interfaces or events and should not depend cyclically on each other. See `docs/modulith.md` for patterns and tests.
+## 2) Package Layout (selected)
 
 ```
 com.buildware.kbase
-├── McpKnowledgeServerApplication.java
-│
-├── project/
-│   ├── Project.java
-│   ├── ProjectRepository.java
-│   ├── ProjectService.java
-│   └── ProjectController.java
-│
-├── knowledge/
-│   ├── KnowledgeDocument.java
-│   ├── KnowledgeChunk.java
-│   ├── KnowledgeDocumentRepository.java
-│   ├── KnowledgeChunkRepository.java
-│   └── KnowledgeQueryService.java
-│
-├── ingestion/
-│   ├── FileIngestionService.java
-│   ├── MarkdownParser.java
-│   ├── PdfParser.java
-│   ├── IngestionScheduler.java
-│   └── IngestionUtils.java
-│
-├── ai/
-│   ├── EmbeddingService.java
-│   ├── EmbeddingUtils.java
-│   └── SemanticSearchService.java
-│
-├── mcp/
-│   ├── KnowledgeMcpTool.java
-│   ├── McpToolRegistry.java
-│   ├── McpConfig.java
-│   └── McpHealthController.java
-│
-├── controller/
-│   ├── KnowledgeController.java
-│   ├── ProjectController.java
-│   └── HealthController.java
-│
+├── Application.java
 ├── config/
-│   ├── DatabaseConfig.java
-│   ├── AiConfig.java
-│   ├── ApplicationProperties.java
-│   └── LoggingConfig.java
+│   ├── OpenApiConfig.java
+│   └── KnowledgeProperties.java        # binds mcp.knowledge.docs-path
+├── project/
+│   ├── domain/ Project.java
+│   ├── repository/ ProjectRepository.java
+│   ├── service/ ProjectService.java
+│   └── web/ ProjectController.java
+├── knowledge/
+│   ├── service/ KnowledgeQueryService.java, KnowledgeSyncService.java
+│   └── web/ KnowledgeController.java
+└── spi/
+    ├── ProjectInfo.java
+    └── ProjectLookupPort.java
 ```
 
 ---
 
-## 🧠 **3. Module Responsibilities**
+## 3) Data Flow
 
-### 🏗️ Core: `project` & `knowledge`
-
-* Define entities (`Project`, `KnowledgeDocument`, `KnowledgeChunk`).
-* Manage relationships and indexing logic.
-* Provide repositories for CRUD + metadata filtering.
-* Handle `pgvector` persistence and search queries.
-
-**Agent Owner:** `architect-agent`, `codegen-agent`
-
----
-
-### 🧩 AI Layer: `ai`
-
-* Handles all **embedding** generation (Spring AI).
-* Provides **semantic search service** using vector distance (`<=>` operator).
-* Abstracts model provider (OpenAI now, extendable to Anthropic, Mistral, etc.).
-* Provides embedding batching and retry strategies.
-
-**Agent Owner:** `mcp-agent`, `data-agent`
-
----
-
-### 📥 Ingestion Layer: `ingestion`
-
-* Reads from `/knowledge/{projectCode}/`.
-* Extracts text from Markdown and PDF.
-* Splits into ~500-word chunks with context preservation.
-* Embeds text chunks and saves to DB.
-* Includes `IngestionScheduler` (e.g., cron: every 6h).
-
-**Agent Owner:** `data-agent`
-
----
-
-### 🌐 API Layer: `controller`
-
-* Provides REST + MCP endpoints:
-
-    * `/mcp/knowledge/query`
-    * `/mcp/knowledge/add`
-    * `/mcp/projects/list`
-    * `/mcp/health`
-* JSON input/output + schema validation.
-* Returns ordered semantic results with metadata.
-
-**Agent Owner:** `codegen-agent`, `mcp-agent`
-
----
-
-### 🧩 MCP Integration: `mcp`
-
-* Registers tools annotated with `@McpTool`.
-* Exposes MCP manifest for discovery by agents.
-* Validates tool schema and parameters.
-* Handles `/mcp/manifest.json` endpoint.
-
-**Agent Owner:** `mcp-agent`
-
----
-
-### 🛠️ Infrastructure: `config`, `infrastructure`
-
-* Database & AI configuration (pgvector, Spring AI).
-* Profiles: `dev`, `test`, `prod`.
-* Logging, CORS, and exception handling.
-* Dockerfile, Compose, and pipeline configs.
-
-**Agent Owner:** `devops-agent`
-
----
-
-## 🧾 **4. Data Flow**
-
-### Ingestion Flow
+### Sync (Filesystem → Vector Store)
 
 ```
-FileSystem (Markdown/PDF)
-    ↓
-Parser (Flexmark / PDFBox)
-    ↓
-IngestionService (chunks + embeddings)
-    ↓
-pgvector DB (documents + embeddings)
+Project base path
+   ↓ walk + filter (*.md, *.markdown, *.txt)
+TokenTextSplitter → chunks + metadata
+   ↓ embeddings via Spring AI (OpenAI)
+pgvector (vector_store table)
 ```
 
-Schema changes are managed via Flyway SQL migrations residing in `src/main/resources/db/migration`. Migrations run automatically on application startup.
+`KnowledgeSyncService` prevents duplicate loads using a per-document marker record (content hash) stored in the vector store.
 
-### Query Flow
+### Query (User → Results)
 
 ```
-Client / Agent → /mcp/knowledge/query
-    ↓
-EmbeddingService → OpenAI API (Spring AI)
-    ↓
-SemanticSearchService → pgvector <=> queryEmbedding
-    ↓
-Response (ranked chunks + metadata)
+Client → POST /mcp/knowledge/query (projectCode, query, topK)
+  ↓
+VectorStore.similaritySearch(filter by projectCode)
+  ↓
+DTO mapping (text, score, docPath, title, chunkIndex)
 ```
 
 ---
 
-## 🔌 **5. Configuration Conventions**
+## 4) Endpoints
 
-| Key                           | Description                       | Example                                  |
-| ----------------------------- | --------------------------------- | ---------------------------------------- |
-| `mcp.knowledge.docs-path`     | Root path for project directories | `./knowledge`                            |
-| `mcp.knowledge.scan-interval` | Scheduler interval                | `6h`                                     |
-| `spring.ai.openai.api-key`    | API key for embeddings            | `${OPENAI_API_KEY}`                      |
-| `spring.datasource.url`       | JDBC connection string            | `jdbc:postgresql://localhost:5432/mcpdb` |
+- `POST /mcp/knowledge/query` — semantic search
+- `POST /mcp/knowledge/sync` — sync all projects
+- `POST /mcp/knowledge/sync/{projectCode}` — sync one project
+- `GET /mcp/projects` — list projects (optionally include confidential)
+- `GET /mcp/projects/{code}` — get project by code
+- `POST /mcp/projects/sync` — discover projects from knowledge path
+
+OpenAPI/Swagger is available at `/swagger-ui/index.html`.
 
 ---
 
-## 🧩 **6. Project Directory Convention**
+## 5) Configuration
+
+| Key                        | Description                           | Default/Notes                     |
+| -------------------------- | ------------------------------------- | --------------------------------- |
+| `mcp.knowledge.docs-path`  | Root path for project directories     | Set via env `MCP_KNOWLEDGE_DOCS_PATH` |
+| `spring.ai.openai.api-key` | API key for embeddings                | `OPENAI_API_KEY`                  |
+| `spring.ai.vector-store.pgvector.dimensions` | Embedding dimensions          | `1536` (text-embedding-3-small)   |
+| `server.port`              | HTTP port                             | `8080`                            |
+
+Flyway SQL migrations live under `src/main/resources/db/migration`.
+
+---
+
+## 6) Knowledge Directory Convention
 
 ```
 knowledge/
  ├── cormit/
  │   ├── architecture.md
- │   ├── implementation.pdf
  │   └── business_overview.md
  ├── buildware/
  │   ├── tech_stack.md
