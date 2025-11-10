@@ -48,7 +48,6 @@ class KnowledgeQueryServiceTest {
             assertThat(results).hasSize(2);
             assertThat(results.get(0).getText()).contains("alpha");
             assertThat(results.get(1).getText()).contains("beta");
-            // Score may be 0.0 in test since VectorStore mock does not provide it
         }
 
 
