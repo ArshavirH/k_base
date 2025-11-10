@@ -15,24 +15,24 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 public abstract class PostgresContainerSupport {
 
-    private static final String DEFAULT_IMAGE = "arshavirh/postgres-pgvector:1.2.0";
-    private static final String IMAGE_ENV = "TEST_POSTGRES_IMAGE";
+    private static final DockerImageName DEFAULT_IMAGE = DockerImageName
+        .parse("arshavirh/postgres-pgvector:1.2.0")
+        .asCompatibleSubstituteFor("postgres");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresContainerSupport.class);
 
     @Container
-    @SuppressWarnings("resource")
-    public static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
-        DockerImageName
-            .parse(System.getenv().getOrDefault(IMAGE_ENV, DEFAULT_IMAGE))
-            .asCompatibleSubstituteFor("postgres")
-    )
-        .withDatabaseName("kbase")
-        .withUsername("postgres")
-        .withPassword("user123")
-        .withLogConsumer(new Slf4jLogConsumer(LOGGER).withSeparateOutputStreams())
-        .waitingFor(Wait.forListeningPort()
-            .withStartupTimeout(Duration.ofSeconds(120)));
+    public static final PostgreSQLContainer<?> POSTGRES = getPostgres();
+
+    private static PostgreSQLContainer<?> getPostgres() {
+        try (var container = new PostgreSQLContainer<>(DEFAULT_IMAGE)) {
+            return container.withDatabaseName("kbase")
+                .withUsername("postgres")
+                .withPassword("user123")
+                .withLogConsumer(new Slf4jLogConsumer(LOGGER).withSeparateOutputStreams())
+                .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(120)));
+        }
+    }
 
     @DynamicPropertySource
     static void registerDataSourceProperties(DynamicPropertyRegistry registry) {
