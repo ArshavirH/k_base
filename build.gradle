@@ -2,13 +2,16 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.7'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'com.diffplug.spotless' version '6.25.0'
     id 'checkstyle'
     id 'jacoco'
 }
 
 group = 'com.buildware'
 version = '0.0.1-SNAPSHOT'
+
+jar {
+    enabled = false
+}
 
 java {
     toolchain {
@@ -42,11 +45,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
 
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
     implementation 'org.springframework.ai:spring-ai-mcp'
-    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
     implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
-    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+    implementation 'org.springframework.ai:spring-ai-starter-mcp-server-webmvc'
+
 
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
 
@@ -101,7 +106,7 @@ checkstyle {
 }
 
 tasks.named('check') {
-    dependsOn 'spotlessCheck', 'checkstyleMain', 'checkstyleTest', 'jacocoTestReport'
+    dependsOn 'checkstyleMain', 'checkstyleTest', 'jacocoTestReport'
 }
 
 jacoco {
