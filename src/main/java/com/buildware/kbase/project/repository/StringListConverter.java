@@ -1,4 +1,4 @@
-package com.buildware.kbase.project.domain;
+package com.buildware.kbase.project.repository;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

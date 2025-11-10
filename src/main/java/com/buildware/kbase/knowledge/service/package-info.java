@@ -1,6 +1,10 @@
 @ApplicationModule(
-    displayName = "Knowledge Service",
-    allowedDependencies = {"ai", "spi", "knowledge.repository", "knowledge.domain", "knowledge.service.model"}
+    displayName = "Knowledge Services",
+    allowedDependencies = {
+        "spi",
+        "knowledge.domain",
+        "knowledge.mapper"
+    }
 )
 package com.buildware.kbase.knowledge.service;
 

@@ -24,9 +24,14 @@ Example test:
 
 ```java
 // src/test/java/com/buildware/kbase/ModularityTests.java
-@ApplicationModuleTest
+import org.junit.jupiter.api.Test;
+import org.springframework.modulith.core.ApplicationModules;
+
 class ModularityTests {
-  @Test void noCycles(ModularityFixture fixture) { fixture.assertNoCycles(); }
+  @Test
+  void noCycles() {
+    ApplicationModules.of(Application.class).verify();
+  }
 }
 ```
 
@@ -42,3 +47,5 @@ package com.buildware.kbase.ingestion;
 
 import org.springframework.modulith.ApplicationModule;
 ```
+
+Tip: Use `allowedDependencies` in the `@ApplicationModule` to explicitly whitelist cross-module references and enforce boundaries.

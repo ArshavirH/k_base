@@ -1,4 +1,4 @@
-package com.buildware.kbase.knowledge.service.model;
+package com.buildware.kbase.knowledge.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class KnowledgeHit {
+
     private String text;
     private double score;
     private String docPath;

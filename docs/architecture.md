@@ -13,8 +13,8 @@ This document reflects the current implementation in the repository.
 | Core           | Projects catalog + vector search services               | `project`, `knowledge`            |
 | Sync           | Filesystem scan, chunking (TokenTextSplitter), upserts | `knowledge.service`               |
 | API            | REST controllers + DTO mapping                          | `project.web`, `knowledge.web`    |
-| Config         | OpenAPI, knowledge path config                          | `config`                          |
-| SPI            | Project lookup abstraction                              | `spi`                             |
+| Config         | OpenAPI, CORS, knowledge path config                    | `config`                          |
+| SPI            | Cross-module contracts (views nested)                   | `spi` (`ProjectInfoSPI`, `KnowledgeSearchSPI`) |
 
 Spring Modulith annotations in `package-info.java` document module boundaries. See `docs/modulith.md`.
 
@@ -34,11 +34,19 @@ com.buildware.kbase
 │   ├── service/ ProjectService.java
 │   └── web/ ProjectController.java
 ├── knowledge/
-│   ├── service/ KnowledgeQueryService.java, KnowledgeSyncService.java
-│   └── web/ KnowledgeController.java
+│   ├── service/ KnowledgeQueryService.java, KnowledgeSyncService.java, KnowledgeSearchSPIImpl.java
+│   └── web/ KnowledgeController.java, KnowledgeApiMapper.java
 └── spi/
-    ├── ProjectInfo.java
-    └── ProjectLookupPort.java
+    ├── ProjectInfoSPI.java
+    └── KnowledgeSearchSPI.java
+```
+
+Additional adapters
+
+```
+com.buildware.kbase.ai.mcp
+├── KnowledgeMcpTool.java
+└── MCPServerToolsRegistrar.java
 ```
 
 ---
@@ -60,7 +68,7 @@ pgvector (vector_store table)
 ### Query (User → Results)
 
 ```
-Client → POST /mcp/knowledge/query (projectCode, query, topK)
+Client → POST /knowledge/query (projectCode, query, topK)
   ↓
 VectorStore.similaritySearch(filter by projectCode)
   ↓
@@ -71,12 +79,14 @@ DTO mapping (text, score, docPath, title, chunkIndex)
 
 ## 4) Endpoints
 
-- `POST /mcp/knowledge/query` — semantic search
-- `POST /mcp/knowledge/sync` — sync all projects
-- `POST /mcp/knowledge/sync/{projectCode}` — sync one project
-- `GET /mcp/projects` — list projects (optionally include confidential)
-- `GET /mcp/projects/{code}` — get project by code
-- `POST /mcp/projects/sync` — discover projects from knowledge path
+- `POST /knowledge/query` — semantic search
+- `POST /knowledge/sync` — sync all projects
+- `POST /knowledge/sync/{projectCode}` — sync one project
+- `GET /projects` — list projects (optionally include confidential)
+- `GET /projects/{code}` — get project by code
+- `POST /projects/sync` — discover projects from knowledge path
+
+Base route prefixes: `/knowledge` and `/projects`.
 
 OpenAPI/Swagger is available at `/swagger-ui/index.html`.
 
@@ -116,20 +126,6 @@ Each file is a document automatically ingested and indexed.
 
 ---
 
-## 🧠 **7. Development Rules for AI Agents**
-
-| Agent             | Responsibility                              | Output                             |
-| ----------------- | ------------------------------------------- | ---------------------------------- |
-| `architect-agent` | Maintain architecture.md and data models    | UML diagrams, entity relationships |
-| `codegen-agent`   | Write or refactor Java classes per spec     | Source code, DTOs, controllers     |
-| `data-agent`      | Manage ingestion logic, handle file parsing | Markdown/PDF parser, scheduler     |
-| `docs-agent`      | Maintain docs, update README/setup guides   | Markdown docs                      |
-| `mcp-agent`       | Ensure tool compliance, manifest generation | MCP descriptors                    |
-| `qa-agent`        | Write and validate tests                    | JUnit classes, coverage reports    |
-| `devops-agent`    | Configure Docker, CI/CD, cloud deploy       | Dockerfile, workflow YAMLs         |
-
----
-
 ## 🧩 **8. Extension Points**
 
 | Area           | Description                                   |
@@ -152,9 +148,3 @@ Each file is a document automatically ingested and indexed.
 | **4. MCP Tools**    | Spring AI MCP tool exposure                 | `@McpTool` classes                 |
 | **5. Scheduler**    | Auto re-ingestion + project discovery       | `IngestionScheduler`               |
 | **6. Docs & Admin** | Docs ingestion, admin API, dashboard        | Docs + optional UI                 |
-
----
-### Data Model Notes
-
-- Primary keys are UUIDs (generated via `gen_random_uuid()` in PostgreSQL).
-- Enumerations are stored as strings (e.g., `visibility` uses VARCHAR).

@@ -1,4 +1,4 @@
-package com.buildware.kbase.knowledge.web.dto;
+package com.buildware.kbase.knowledge.web;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

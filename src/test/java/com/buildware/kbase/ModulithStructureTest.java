@@ -19,7 +19,6 @@ class ModulithStructureTest {
         ApplicationModules modules = ApplicationModules.of(Application.class);
 
         // WHEN
-        // verify() asserts no cycles and that declared allowedDependencies are respected
         modules.verify();
 
         // THEN

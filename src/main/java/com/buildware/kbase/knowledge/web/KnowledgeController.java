@@ -1,16 +1,10 @@
 package com.buildware.kbase.knowledge.web;
 
+import com.buildware.kbase.knowledge.domain.KnowledgeHit;
 import com.buildware.kbase.knowledge.service.KnowledgeQueryService;
 import com.buildware.kbase.knowledge.service.KnowledgeSyncService;
-import com.buildware.kbase.knowledge.service.model.KnowledgeHit;
-import com.buildware.kbase.knowledge.web.dto.KnowledgeChunkResponse;
-import com.buildware.kbase.knowledge.web.dto.KnowledgeQueryRequest;
-import com.buildware.kbase.knowledge.web.dto.KnowledgeSyncResponse;
-import com.buildware.kbase.knowledge.web.mapper.KnowledgeMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,34 +21,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller exposing endpoints to query and synchronize the knowledge base. Endpoints allow clients to: - Query
- * vector-store backed chunks for a given project and free-text query. - Trigger synchronization of documents from a
+ * REST controller exposing endpoints to text and synchronize the knowledge base. Endpoints allow clients to: - Query
+ * vector-store backed chunks for a given project and free-text text. - Trigger synchronization of documents from a
  * project base path into the vector store.
  */
 @RestController
-@RequestMapping(path = "/mcp/knowledge", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/knowledge", produces = MediaType.APPLICATION_JSON_VALUE)
 @Validated
 @Tag(name = "Knowledge", description = "Query and synchronize the knowledge base")
 public class KnowledgeController {
 
     private final KnowledgeQueryService knowledgeQueryService;
     private final KnowledgeSyncService knowledgeSyncService;
-    private final KnowledgeMapper knowledgeMapper;
+    private final KnowledgeApiMapper mapper;
 
     public KnowledgeController(
         KnowledgeQueryService knowledgeQueryService,
         KnowledgeSyncService knowledgeSyncService,
-        KnowledgeMapper knowledgeMapper
+        KnowledgeApiMapper mapper
     ) {
         this.knowledgeQueryService = knowledgeQueryService;
         this.knowledgeSyncService = knowledgeSyncService;
-        this.knowledgeMapper = knowledgeMapper;
+        this.mapper = mapper;
     }
 
     /**
      * Executes a semantic search over knowledge chunks for a specific project.
      *
-     * @param req the search request containing project code, query and optional topK
+     * @param req the search request containing project code, text and optional topK
      * @return the top matching chunks with text, score and metadata
      */
     @PostMapping(path = "/query", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -66,7 +60,7 @@ public class KnowledgeController {
     public List<KnowledgeChunkResponse> query(@Valid @RequestBody KnowledgeQueryRequest req) {
         int k = req.getTopK() != null ? req.getTopK() : 5;
         List<KnowledgeHit> hits = knowledgeQueryService.query(req.getProjectCode(), req.getQuery(), k);
-        return knowledgeMapper.toDtoList(hits);
+        return mapper.toDtoList(hits);
     }
 
     /**
