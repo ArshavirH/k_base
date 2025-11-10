@@ -1,8 +1,6 @@
 package com.buildware.kbase.project.web;
 
 import com.buildware.kbase.project.service.ProjectService;
-import com.buildware.kbase.project.web.dto.ProjectDTO;
-import com.buildware.kbase.project.web.mapper.ProjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,13 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
  * the knowledge directory and updates the repository accordingly.
  */
 @RestController
-@RequestMapping("/mcp/projects")
+@RequestMapping("/projects")
 @Tag(name = "Projects", description = "Manage knowledge projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
     private final ProjectService projectService;
-    private final ProjectMapper projectMapper;
+    private final ProjectApiMapper mapper;
 
     /**
      * List projects. Returns public projects by default. When {@code includeConfidential} is true, confidential
@@ -50,7 +48,7 @@ public class ProjectController {
         @RequestParam(name = "includeConfidential", defaultValue = "false")
         boolean includeConfidential) {
         return projectService.listProjects(includeConfidential).stream()
-            .map(projectMapper::toResponse)
+            .map(mapper::toResponse)
             .collect(Collectors.toList());
     }
 
@@ -70,7 +68,7 @@ public class ProjectController {
         @PathVariable String code) {
         return projectService
             .getByCode(code)
-            .map(projectMapper::toResponse)
+            .map(mapper::toResponse)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -86,7 +84,7 @@ public class ProjectController {
         description = "Scans knowledge directory for projects and updates repository")
     public List<ProjectDTO> sync() {
         return projectService.syncFromFilesystem().stream()
-            .map(projectMapper::toResponse)
+            .map(mapper::toResponse)
             .collect(Collectors.toList());
     }
 }

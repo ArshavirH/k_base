@@ -1,5 +1,6 @@
 package com.buildware.kbase.project.domain;
 
+import com.buildware.kbase.project.repository.StringListConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -58,4 +59,10 @@ public class Project {
 
     @Column(name = "last_sync_at")
     private Instant lastSyncAt;
+
+
+    public enum Visibility {
+        PUBLIC,
+        CONFIDENTIAL
+    }
 }

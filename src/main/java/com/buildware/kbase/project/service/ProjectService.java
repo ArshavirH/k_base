@@ -2,7 +2,7 @@ package com.buildware.kbase.project.service;
 
 import com.buildware.kbase.config.KnowledgeProperties;
 import com.buildware.kbase.project.domain.Project;
-import com.buildware.kbase.project.domain.Visibility;
+import com.buildware.kbase.project.domain.Project.Visibility;
 import com.buildware.kbase.project.repository.ProjectRepository;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,6 +27,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final KnowledgeProperties knowledgeProperties;
 
+    @Transactional(readOnly = true)
     public List<Project> listProjects(boolean includeConfidential) {
         List<Project> all = includeConfidential
             ? projectRepository.findAll()
@@ -36,6 +37,7 @@ public class ProjectService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Optional<Project> getByCode(String code) {
         return projectRepository.findByCode(code);
     }

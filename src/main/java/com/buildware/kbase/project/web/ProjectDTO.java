@@ -1,4 +1,4 @@
-package com.buildware.kbase.project.web.dto;
+package com.buildware.kbase.project.web;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,5 +25,18 @@ public record ProjectDTO(
     VisibilityDTO visibility,
     Instant lastSyncAt
 ) {
+
+    public enum VisibilityDTO {
+
+        /**
+         * Publicly visible project.
+         */
+        PUBLIC,
+
+        /**
+         * Confidential project, hidden by default.
+         */
+        CONFIDENTIAL
+    }
 
 }
