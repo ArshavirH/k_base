@@ -91,10 +91,6 @@ This launches the Inspector UI connected to the running Spring Boot MCP server, 
 
 ---
 
-## 🔐 Security & CORS
-
-- CORS is permissive for development. For production, restrict allowed origins and avoid using wildcard with credentials.
-
 ## 🧰 Project Technologies
 
 - Java 21 + Spring Boot 3.x
@@ -210,5 +206,3 @@ Agents can collaborate around the same persistent memory, sharing domain-specifi
 
 The **MCP Knowledge Server** bridges the gap between *ephemeral AI prompts* and *persistent organizational memory*.
 It allows agents to **think with context, learn over time**, and **collaborate across projects** through a unified, semantic knowledge base.
-
-> It’s not just retrieval — it’s the foundation of *continuous, contextual intelligence* for every AI-driven workflow.
