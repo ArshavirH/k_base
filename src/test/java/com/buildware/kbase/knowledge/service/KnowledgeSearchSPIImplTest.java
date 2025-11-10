@@ -44,6 +44,6 @@ class KnowledgeSearchSPIImplTest {
 
         // THEN
         assertThat(out).hasSize(1);
-        assertThat(out.get(0).text()).isEqualTo(view.text());
+        assertThat(out.getFirst().text()).isEqualTo(view.text());
     }
 }

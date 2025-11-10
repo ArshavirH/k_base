@@ -86,7 +86,7 @@ class KnowledgeSyncServiceTest {
             assertThat(res).isPresent();
             assertThat(res.get().documents()).isEqualTo(1);
             assertThat(res.get().chunks()).isGreaterThan(0);
-            verify(vectorStore, times(1)).add(any(List.class));
+            verify(vectorStore, times(1)).add(any());
         }
     }
 }
