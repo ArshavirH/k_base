@@ -4,11 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.when;
 
-import com.buildware.kbase.knowledge.service.model.KnowledgeHit;
+import com.buildware.kbase.knowledge.domain.KnowledgeHit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.instancio.junit.InstancioExtension;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +18,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 
-@ExtendWith({MockitoExtension.class, InstancioExtension.class})
+@ExtendWith({MockitoExtension.class})
 class KnowledgeQueryServiceTest {
 
     @Mock
@@ -35,10 +34,10 @@ class KnowledgeQueryServiceTest {
         void should_returnNearestChunks_when_queryByProject() {
             // GIVEN
             String projectCode = "testproj";
-            String query = "any query";
+            String query = "any text";
             int topK = 2;
-            Document d1 = new Document("alpha text", metadata("/doc.md", "Doc", 0));
-            Document d2 = new Document("beta text", metadata("/doc.md", "Doc", 1));
+            Document d1 = new Document("alpha text", metadata(0));
+            Document d2 = new Document("beta text", metadata(1));
             when(vectorStore.similaritySearch(org.mockito.ArgumentMatchers.any(SearchRequest.class)))
                 .thenReturn(List.of(d1, d2));
 
@@ -78,14 +77,14 @@ class KnowledgeQueryServiceTest {
 
             // THEN
             assertThat(thrown).isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("query must not be blank");
+                .hasMessageContaining("text must not be blank");
         }
     }
 
-    private static Map<String, Object> metadata(String path, String title, int idx) {
+    private static Map<String, Object> metadata(int idx) {
         Map<String, Object> md = new HashMap<>();
-        md.put("docPath", path);
-        md.put("title", title);
+        md.put("docPath", "/doc.md");
+        md.put("title", "Doc");
         md.put("chunkIndex", idx);
         md.put("projectCode", "testproj");
         return md;

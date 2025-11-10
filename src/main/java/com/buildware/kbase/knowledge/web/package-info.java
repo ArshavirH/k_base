@@ -1,12 +1,10 @@
-@org.springframework.modulith.ApplicationModule(
-    displayName = "Knowledge Web",
+@ApplicationModule(
+    displayName = "Knowledge Web Adapter",
     allowedDependencies = {
         "knowledge.service",
-        "knowledge.domain",
-        "knowledge.web.mapper",
-        "knowledge.service.model",
-        "knowledge.web.dto"
+        "knowledge.domain"
     }
 )
 package com.buildware.kbase.knowledge.web;
 
+import org.springframework.modulith.ApplicationModule;

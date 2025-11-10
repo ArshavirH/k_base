@@ -1,6 +1,6 @@
 package com.buildware.kbase.knowledge.service;
 
-import com.buildware.kbase.knowledge.service.model.KnowledgeHit;
+import com.buildware.kbase.knowledge.domain.KnowledgeHit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,7 +21,7 @@ public class KnowledgeQueryService {
 
     public List<KnowledgeHit> query(String projectCode, String query, int topK) {
         Validate.notBlank(projectCode, "projectCode must not be blank");
-        Validate.notBlank(query, "query must not be blank");
+        Validate.notBlank(query, "text must not be blank");
         var searchQuery = SearchRequest.builder()
             .query(query)
             .topK(topK > 0 ? Math.min(topK, 50) : 5)

@@ -1,7 +1,7 @@
 package com.buildware.kbase.knowledge.service;
 
-import com.buildware.kbase.spi.ProjectInfo;
-import com.buildware.kbase.spi.ProjectLookupPort;
+import com.buildware.kbase.spi.ProjectInfoSPI;
+import com.buildware.kbase.spi.ProjectInfoSPI.ProjectInfo;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -29,7 +29,7 @@ public class KnowledgeSyncService {
 
     private static final String MARKER_PREFIX = "__KBASE_MARKER__:";
 
-    private final ProjectLookupPort projectLookupPort;
+    private final ProjectInfoSPI projectInfoSPI;
     private final VectorStore vectorStore;
 
     public record SyncResult(String projectCode, int documents, int chunks) {
@@ -38,7 +38,7 @@ public class KnowledgeSyncService {
 
     @Transactional
     public Optional<SyncResult> syncProject(String projectCode) {
-        Optional<ProjectInfo> projectOpt = projectLookupPort.getByCode(projectCode);
+        Optional<ProjectInfo> projectOpt = projectInfoSPI.getByCode(projectCode);
         if (projectOpt.isEmpty()) {
             log.warn("Project '{}' not found for knowledge sync", projectCode);
             return Optional.empty();
@@ -67,7 +67,7 @@ public class KnowledgeSyncService {
 
     @Transactional
     public List<SyncResult> syncAllProjects() {
-        return projectLookupPort.listAll().stream()
+        return projectInfoSPI.listAll().stream()
             .map(ProjectInfo::code)
             .map(this::syncProject)
             .filter(Optional::isPresent)
