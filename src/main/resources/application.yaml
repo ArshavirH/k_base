@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  main:
+    web-application-type: servlet
   application:
     name: kbase
   datasource:
@@ -13,7 +15,6 @@ spring:
       ddl-auto: none
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
-
   ai:
     vector-store:
       pgvector:
@@ -24,11 +25,40 @@ spring:
         schema-validation: true
         schema-name: public
         table-name: vector_store
+    mcp:
+      server:
+        name: kbase-mcp
+        version: 0.0.1
+        type: SYNC
+        stdio: true
+        resource-change-notification: true
+        tool-change-notification: true
+        prompt-change-notification: true
+        enabled: true
     openai:
-      api-key: ${OPENAI_API_KEY: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}
+      api-key: ${OPENAI_API_KEY}
       embedding:
         options:
           model: text-embedding-3-small
+
+
+management:
+  endpoint:
+    env:
+      show-values: always
+    configprops:
+      show-values: always
+  tracing:
+    enabled: false
+  info:
+    git:
+      mode: full
+    build:
+      enabled: true
+    env:
+      enabled: true
+  metrics.distribution.percentiles-histogram.http.server.requests: true
+  endpoints.web.exposure.include: health,info,env,configprops,metrics,custom
 
 springdoc:
   api-docs:
