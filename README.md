@@ -59,11 +59,8 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 ## 📚 Endpoints
 
 - `POST /knowledge/query` — semantic search within a project
-- `POST /knowledge/sync` — sync all projects from filesystem
-- `POST /knowledge/sync/{projectCode}` — sync a single project
 - `GET /projects` — list projects (query: `includeConfidential`)
 - `GET /projects/{code}` — get project by code
-- `POST /projects/sync` — discover projects from knowledge path
 
 Swagger UI documents these at `/swagger-ui/index.html`.
 
@@ -85,7 +82,6 @@ This launches the Inspector UI connected to the running Spring Boot MCP server, 
 
 | Key                                  | How to set (env)                 | Notes                             |
 | ------------------------------------ | --------------------------------- | --------------------------------- |
-| `mcp.knowledge.docs-path`            | `MCP_KNOWLEDGE_DOCS_PATH`         | Root folder of project docs       |
 | `spring.ai.openai.api-key`           | `OPENAI_API_KEY`                  | Required for embeddings           |
 | `spring.ai.vector-store.pgvector.*`  | env overrides supported           | Dimensions default to `1536`      |
 

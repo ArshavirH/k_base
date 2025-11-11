@@ -4,7 +4,6 @@ import static com.buildware.kbase.toolkit.instancio.InstancioUtils.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.buildware.kbase.project.domain.Project;
 import com.buildware.kbase.project.service.ProjectService;
@@ -73,21 +72,5 @@ class ProjectControllerTest {
         assertThat(body.name()).isEqualTo(project.getName());
     }
 
-    @Test
-    void should_returnSyncedProjects_when_syncIsCalled() throws Exception {
-        // GIVEN
-        var project = random(Project.class);
-        when(projectService.syncFromFilesystem()).thenReturn(List.of(project));
-
-        // WHEN
-        MvcResult result = mockMvc.perform(post("/projects/sync")).andReturn();
-
-        // THEN
-        assertThat(result.getResponse().getStatus()).isEqualTo(200);
-        List<ProjectDTO> body = objectMapper.readValue(
-            result.getResponse().getContentAsByteArray(), new TypeReference<>() {
-            });
-        assertThat(body).hasSize(1);
-        assertThat(body.getFirst().code()).isEqualTo(project.getCode());
-    }
+    // Filesystem sync endpoint removed; corresponding test deleted.
 }

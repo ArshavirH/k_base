@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -73,18 +72,4 @@ public class ProjectController {
             .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Synchronize projects from the filesystem. Scans the configured knowledge path for project folders and creates or
-     * updates corresponding records.
-     *
-     * @return list of created/updated projects
-     */
-    @PostMapping("/sync")
-    @Operation(summary = "Sync projects from filesystem",
-        description = "Scans knowledge directory for projects and updates repository")
-    public List<ProjectDTO> sync() {
-        return projectService.syncFromFilesystem().stream()
-            .map(mapper::toResponse)
-            .collect(Collectors.toList());
-    }
 }

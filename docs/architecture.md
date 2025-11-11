@@ -11,9 +11,8 @@ This document reflects the current implementation in the repository.
 | Layer          | Description                                             | Key Packages                      |
 | -------------- | ------------------------------------------------------- | --------------------------------- |
 | Core           | Projects catalog + vector search services               | `project`, `knowledge`            |
-| Sync           | Filesystem scan, chunking (TokenTextSplitter), upserts | `knowledge.service`               |
 | API            | REST controllers + DTO mapping                          | `project.web`, `knowledge.web`    |
-| Config         | OpenAPI, CORS, knowledge path config                    | `config`                          |
+| Config         | OpenAPI, CORS                                          | `config`                          |
 | SPI            | Cross-module contracts (views nested)                   | `spi` (`ProjectInfoSPI`, `KnowledgeSearchSPI`) |
 
 Spring Modulith annotations in `package-info.java` document module boundaries. See `docs/modulith.md`.
@@ -26,15 +25,14 @@ Spring Modulith annotations in `package-info.java` document module boundaries. S
 com.buildware.kbase
 ├── Application.java
 ├── config/
-│   ├── OpenApiConfig.java
-│   └── KnowledgeProperties.java        # binds mcp.knowledge.docs-path
+│   └── OpenApiConfig.java
 ├── project/
 │   ├── domain/ Project.java
 │   ├── repository/ ProjectRepository.java
 │   ├── service/ ProjectService.java
 │   └── web/ ProjectController.java
 ├── knowledge/
-│   ├── service/ KnowledgeQueryService.java, KnowledgeSyncService.java, KnowledgeSearchSPIImpl.java
+│   ├── service/ KnowledgeQueryService.java, KnowledgeSearchSPIImpl.java
 │   └── web/ KnowledgeController.java, KnowledgeApiMapper.java
 └── spi/
     ├── ProjectInfoSPI.java
@@ -53,18 +51,6 @@ com.buildware.kbase.ai.mcp
 
 ## 3) Data Flow
 
-### Sync (Filesystem → Vector Store)
-
-```
-Project base path
-   ↓ walk + filter (*.md, *.markdown, *.txt)
-TokenTextSplitter → chunks + metadata
-   ↓ embeddings via Spring AI (OpenAI)
-pgvector (vector_store table)
-```
-
-`KnowledgeSyncService` prevents duplicate loads using a per-document marker record (content hash) stored in the vector store.
-
 ### Query (User → Results)
 
 ```
@@ -80,11 +66,8 @@ DTO mapping (text, score, docPath, title, chunkIndex)
 ## 4) Endpoints
 
 - `POST /knowledge/query` — semantic search
-- `POST /knowledge/sync` — sync all projects
-- `POST /knowledge/sync/{projectCode}` — sync one project
 - `GET /projects` — list projects (optionally include confidential)
 - `GET /projects/{code}` — get project by code
-- `POST /projects/sync` — discover projects from knowledge path
 
 Base route prefixes: `/knowledge` and `/projects`.
 
@@ -96,7 +79,6 @@ OpenAPI/Swagger is available at `/swagger-ui/index.html`.
 
 | Key                        | Description                           | Default/Notes                     |
 | -------------------------- | ------------------------------------- | --------------------------------- |
-| `mcp.knowledge.docs-path`  | Root path for project directories     | Set via env `MCP_KNOWLEDGE_DOCS_PATH` |
 | `spring.ai.openai.api-key` | API key for embeddings                | `OPENAI_API_KEY`                  |
 | `spring.ai.vector-store.pgvector.dimensions` | Embedding dimensions          | `1536` (text-embedding-3-small)   |
 | `server.port`              | HTTP port                             | `8080`                            |
@@ -105,26 +87,9 @@ Flyway SQL migrations live under `src/main/resources/db/migration`.
 
 ---
 
-## 6) Knowledge Directory Convention
+## 6) Query Flow Only
 
-```
-knowledge/
- ├── cormit/
- │   ├── architecture.md
- │   └── business_overview.md
- ├── buildware/
- │   ├── tech_stack.md
- │   └── marketing_strategy.md
- ├── legaldocs/
- │   └── data_retention_policy.pdf
- └── giftboxes/
-     └── design_guide.md
-```
-
-Each folder maps to one `Project` entity.
-Each file is a document automatically ingested and indexed.
-
----
+Current scope focuses on serving semantic queries over already-indexed content.
 
 ## 🧩 **8. Extension Points**
 
