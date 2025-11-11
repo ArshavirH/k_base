@@ -8,7 +8,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class KnowledgeChunkResponse {
+public class KnowledgeChunkDTO {
 
     /**
      * The text content of the chunk.

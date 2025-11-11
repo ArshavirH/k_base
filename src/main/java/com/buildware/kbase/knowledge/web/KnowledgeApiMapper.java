@@ -14,7 +14,7 @@ import org.mapstruct.ReportingPolicy;
 )
 public interface KnowledgeApiMapper {
 
-    KnowledgeChunkResponse toDto(KnowledgeHit hit);
+    KnowledgeChunkDTO toDto(KnowledgeHit hit);
 
-    List<KnowledgeChunkResponse> toDtoList(List<KnowledgeHit> hits);
+    List<KnowledgeChunkDTO> toDtoList(List<KnowledgeHit> hits);
 }
