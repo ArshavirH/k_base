@@ -1,29 +1,28 @@
 package com.buildware.kbase.project.web;
 
 import com.buildware.kbase.project.service.ProjectService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Project management endpoints. Exposes read-only listing and lookup for projects, and a sync endpoint that inspects
- * the knowledge directory and updates the repository accordingly.
+ * Project management endpoints for listing, retrieving, creating, updating and deleting projects. This controller
+ * returns public projects by default. Confidential projects are included when {@code includeConfidential=true} is
+ * provided on the listing endpoint.
  */
 @RestController
 @RequestMapping("/projects")
-@Tag(name = "Projects", description = "Manage knowledge projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
@@ -31,19 +30,13 @@ public class ProjectController {
     private final ProjectApiMapper mapper;
 
     /**
-     * List projects. Returns public projects by default. When {@code includeConfidential} is true, confidential
-     * projects are included as well.
+     * List projects.
      *
-     * @param includeConfidential whether confidential projects should be included
-     * @return ordered list of project representations
+     * @param includeConfidential when true, includes confidential projects; otherwise returns only public
+     * @return ordered list of projects
      */
     @GetMapping
-    @Operation(
-        summary = "List projects",
-        description = "Returns public projects by default; include confidential when requested"
-    )
     public List<ProjectDTO> list(
-        @Parameter(description = "Whether to include confidential projects")
         @RequestParam(name = "includeConfidential", defaultValue = "false")
         boolean includeConfidential) {
         return projectService.listProjects(includeConfidential).stream()
@@ -54,22 +47,58 @@ public class ProjectController {
     /**
      * Get a project by its code.
      *
-     * @param code the unique, URL-safe project code
-     * @return 200 with the project when found or 404 otherwise
+     * @param code unique, URL-safe project code
+     * @return 200 with the project when found, or 404 when missing
      */
     @GetMapping("/{code}")
-    @Operation(summary = "Get project by code")
-    @ApiResponse(responseCode = "200", description = "Project found",
-        content = @Content(schema = @Schema(implementation = ProjectDTO.class)))
-    @ApiResponse(responseCode = "404", description = "Not found")
-    public ResponseEntity<ProjectDTO> getByCode(
-        @Parameter(description = "Unique project code")
-        @PathVariable String code) {
+    public ResponseEntity<ProjectDTO> getByCode(@PathVariable String code) {
         return projectService
             .getByCode(code)
             .map(mapper::toResponse)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Create a new project.
+     *
+     * @param req request body containing code, name, basePath and optional fields
+     * @return 201 with the created project
+     */
+    @PostMapping
+    public ResponseEntity<ProjectDTO> create(@RequestBody @Valid ProjectUpsertDTO req) {
+        var saved = projectService.create(mapper.toDomain(req));
+        return ResponseEntity.status(201).body(mapper.toResponse(saved));
+    }
+
+    /**
+     * Update an existing project by code.
+     *
+     * @param code unique project code
+     * @param req  request body with fields to update
+     * @return 200 with the updated project when found, or 404 when missing
+     */
+    @PutMapping("/{code}")
+    public ResponseEntity<ProjectDTO> update(
+        @PathVariable String code,
+        @RequestBody @Valid ProjectUpsertDTO req) {
+        var updates = mapper.toDomain(req);
+        return projectService.update(code, updates)
+            .map(mapper::toResponse)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Delete a project by code.
+     *
+     * @param code unique project code
+     * @return 204 when deletion is processed (idempotent)
+     */
+    @DeleteMapping("/{code}")
+    public ResponseEntity<Void> delete(@PathVariable String code) {
+        projectService.deleteByCode(code);
+        return ResponseEntity.noContent().build();
     }
 
 }
