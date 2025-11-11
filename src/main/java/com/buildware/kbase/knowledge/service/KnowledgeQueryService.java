@@ -11,13 +11,10 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
 @Service
+@lombok.RequiredArgsConstructor
 public class KnowledgeQueryService {
 
     private final VectorStore vectorStore;
-
-    public KnowledgeQueryService(VectorStore vectorStore) {
-        this.vectorStore = vectorStore;
-    }
 
     public List<KnowledgeHit> query(String projectCode, String query, int topK) {
         Validate.notBlank(projectCode, "projectCode must not be blank");
@@ -32,31 +29,26 @@ public class KnowledgeQueryService {
     }
 
     private static KnowledgeHit toHit(Document doc) {
-        KnowledgeHit hit = new KnowledgeHit();
-        hit.setText(doc.getFormattedContent());
+        String text = doc.getFormattedContent();
         Map<String, Object> md = doc.getMetadata();
-        Object path = md.get("docPath");
-        if (path != null) {
-            hit.setDocPath(String.valueOf(path));
-        }
-        Object title = md.get("title");
-        if (title != null) {
-            hit.setTitle(String.valueOf(title));
-        }
+        String docPath = md.get("docPath") != null ? String.valueOf(md.get("docPath")) : null;
+        String title = md.get("title") != null ? String.valueOf(md.get("title")) : null;
+        int chunkIndex = 0;
         Object idx = md.get("chunkIndex");
         if (idx instanceof Number n) {
-            hit.setChunkIndex(n.intValue());
+            chunkIndex = n.intValue();
         }
 
+        double scoreVal = 0.0;
         try {
             var scoreMethod = doc.getClass().getMethod("getScore");
             Object score = scoreMethod.invoke(doc);
             if (score instanceof Number n) {
-                hit.setScore(n.doubleValue());
+                scoreVal = n.doubleValue();
             }
         } catch (Exception ignore) {
-            hit.setScore(0.0);
+            // leave default score
         }
-        return hit;
+        return new KnowledgeHit(text, scoreVal, docPath, title, chunkIndex);
     }
 }

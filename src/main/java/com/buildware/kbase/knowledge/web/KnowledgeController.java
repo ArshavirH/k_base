@@ -4,6 +4,7 @@ import com.buildware.kbase.knowledge.domain.KnowledgeHit;
 import com.buildware.kbase.knowledge.service.KnowledgeQueryService;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,18 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/knowledge", produces = MediaType.APPLICATION_JSON_VALUE)
 @Validated
+@RequiredArgsConstructor
 public class KnowledgeController {
 
     private final KnowledgeQueryService knowledgeQueryService;
     private final KnowledgeApiMapper mapper;
-
-    public KnowledgeController(
-        KnowledgeQueryService knowledgeQueryService,
-        KnowledgeApiMapper mapper
-    ) {
-        this.knowledgeQueryService = knowledgeQueryService;
-        this.mapper = mapper;
-    }
 
     /**
      * Query knowledge chunks using vector similarity.
@@ -39,8 +33,8 @@ public class KnowledgeController {
      */
     @PostMapping(path = "/query", consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<KnowledgeChunkDTO> query(@Valid @RequestBody KnowledgeQueryDTO req) {
-        int k = req.getTopK() != null ? req.getTopK() : 5;
-        List<KnowledgeHit> hits = knowledgeQueryService.query(req.getProjectCode(), req.getQuery(), k);
+        int k = req.topK() != null ? req.topK() : 5;
+        List<KnowledgeHit> hits = knowledgeQueryService.query(req.projectCode(), req.query(), k);
         return mapper.toDtoList(hits);
     }
 }

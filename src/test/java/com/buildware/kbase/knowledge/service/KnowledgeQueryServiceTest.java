@@ -46,8 +46,8 @@ class KnowledgeQueryServiceTest {
 
             // THEN
             assertThat(results).hasSize(2);
-            assertThat(results.get(0).getText()).contains("alpha");
-            assertThat(results.get(1).getText()).contains("beta");
+            assertThat(results.get(0).text()).contains("alpha");
+            assertThat(results.get(1).text()).contains("beta");
         }
 
 
