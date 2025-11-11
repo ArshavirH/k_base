@@ -29,8 +29,6 @@ class KnowledgeControllerTest {
     @MockitoBean
     private KnowledgeQueryService knowledgeQueryService;
 
-    // Sync endpoints removed; only query remains.
-
     @Test
     void should_returnOkAndResults_when_validRequest() throws Exception {
         // GIVEN
@@ -47,8 +45,6 @@ class KnowledgeControllerTest {
 
         // THEN
         String json = res.getResponse().getContentAsString();
-        assertThat(json).contains(h.getText());
+        assertThat(json).contains(h.text());
     }
-
-    // Sync tests removed.
 }
