@@ -6,11 +6,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Request payload for the knowledge query endpoint.
+ * Knowledge query DTO payload.
  */
 @Getter
 @Setter
-public class KnowledgeQueryRequest {
+public class KnowledgeQueryDTO {
 
     @NotBlank
     private String projectCode;

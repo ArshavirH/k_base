@@ -61,6 +61,11 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 - `POST /knowledge/query` — semantic search within a project
 - `GET /projects` — list projects (query: `includeConfidential`)
 - `GET /projects/{code}` — get project by code
+- `POST /projects` — create project
+- `PUT /projects/{code}` — update project
+- `DELETE /projects/{code}` — delete project
+- `GET /mcp/tools` — list available MCP tools
+- `PUT /mcp/tools/{name}` — enable/disable a tool
 
 Swagger UI documents these at `/swagger-ui/index.html`.
 
