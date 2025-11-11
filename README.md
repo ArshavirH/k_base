@@ -59,6 +59,7 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 ## 📚 Endpoints
 
 - `POST /knowledge/query` — semantic search within a project
+- `POST /knowledge/ingest` — ingest a long document (chunk + embed) into a project
 - `GET /projects` — list projects (query: `includeConfidential`)
 - `GET /projects/{code}` — get project by code
 - `POST /projects` — create project

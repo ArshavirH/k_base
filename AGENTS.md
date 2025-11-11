@@ -1,50 +1,73 @@
-# Repository Guidelines
+# Coding Guidelines
 
-## Project Structure & Module Organization
+## Code Style
 
-- `src/main/java/com/buildware/kbase/`: Spring Boot application code (`Application.java`).
-- `src/main/resources/`: configuration (e.g., `application.yaml`).
-- `src/test/java/`: JUnit tests mirroring main package paths.
-- `local_stack/docker-compose.yaml`: local Postgres (pgvector) for development.
-- Build files: `build.gradle`, `settings.gradle`, Gradle wrapper scripts.
-- Spring Modulith: module annotations via `package-info.java`; see `docs/modulith.md`.
+- Java 21, Spring Boot 3.x; 4-space indentation; target 120 columns.
+- Formatting: follow project style (4-space indent). Use your IDE formatter; style is enforced by
+  Checkstyle.
+- Static analysis: Checkstyle with custom rules in `checkstyle/checkstyle.xml`. Run
+  `./gradlew checkstyleMain checkstyleTest` or `./gradlew check`.
+- Import order: enforced by Checkstyle (static vs non-static groups).
 
-## Build, Test, and Development Commands
+## Structure & Layering
 
-- `./gradlew clean build`: compile, run checks, and package the app.
-- `./gradlew bootRun`: start the Spring Boot server on `:8080`.
-- `./gradlew test`: run unit/integration tests (JUnit 5).
-- `./gradlew checkstyleMain checkstyleTest` or `./gradlew check`: run Checkstyle with custom rules
-  in `checkstyle/checkstyle.xml` (warnings are treated as errors).
-- `./gradlew jacocoTestReport`: generate coverage report at
-  `build/reports/jacoco/test/html/index.html`.
-- `docker compose -f local_stack/docker-compose.yaml up -d`: start local Postgres.
-- Environment overrides (examples):
-  - `OPENAI_API_KEY=...` (required for embeddings)
-  - `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/kbase`
-  - `SPRING_DATASOURCE_USERNAME=postgres` `SPRING_DATASOURCE_PASSWORD=user123`
-  - Versions are centralized in `build.gradle` under the `ext` block.
+- Controllers → Services → Repositories. No controller-to-repository calls.
+- Keep controllers thin; DTOs for I/O; map to domain in services.
+- Configuration in `application.yaml`; no hard-coded secrets.
+- Spring Modulith: define modules via `package-info.java` with `@ApplicationModule`; respect module
+  boundaries and avoid cross-module shortcuts.
+- Domain models should favor immutability. In the knowledge module specifically, use Java records
+  for domain types (e.g., `KnowledgeHit`, `IngestDocument`).
 
-## Coding Style & Naming Conventions
+## Modulith Rules & SPI Usage
 
-- Language: Java 21; framework: Spring Boot 3.x.
-- Indentation: 4 spaces (GJF AOSP); aim for ≤120 chars/line.
-- Packages: `com.buildware.kbase...` (lowercase); Classes: `PascalCase`; methods/fields:
-  `camelCase`; constants: `UPPER_SNAKE_CASE`.
-- Prefer constructor injection; keep controllers thin and delegate to services.
-- Imports: avoid fully qualified class names in code; use imports unless resolving ambiguity.
-- Configuration lives in `application.yaml`; avoid hard‑coded secrets.
-- Full guide: see `docs/coding-guidelines.md`.
+- Do not use cross-module dependencies. Always depend on `spi` from other feature modules.
+- Provide adapters in the owning module to implement SPI interfaces (e.g., knowledge implements
+  `KnowledgeQueryPort`).
+- Do not export internal domain models across modules. Use view types under `spi.view` for
+  cross-module data (e.g., `KnowledgeHitView`).
+- MCP or other integration modules must only call into `spi`, never directly into feature services.
 
-## Libraries & Patterns
+## Mapping & Boilerplate
 
-- Mapping: Use MapStruct for DTO ↔ domain mapping; do not hand-write mapping in controllers or services. Prefer dedicated mapper interfaces (package `..mapper` when present) and use `@BeanMapping(nullValuePropertyMappingStrategy = IGNORE)` with `@MappingTarget` for updates.
-- Boilerplate: Lombok (`@Getter`, `@Setter`, `@Builder`, etc.) — runtime optional; compile-time
-  only.
-- Validation: `spring-boot-starter-validation` with `@Valid` and constraint annotations.
-- Utilities: Apache Commons Lang (`StringUtils`, `Validate`, etc.).
-- Migrations: Flyway SQL scripts in `src/main/resources/db/migration` (e.g.,
-  `V1__create_projects.sql`). Primary keys use UUIDs; ensure `pgcrypto` is enabled.
+- Prefer MapStruct for deterministic DTO ↔ domain mapping. Place mappers under `..mapper` packages.
+- Allow Lombok for boilerplate (`@Getter`, `@Setter`, `@Builder`, `@RequiredArgsConstructor`) — keep
+  it compile-only.
+- Constructor injection: use `@RequiredArgsConstructor` on Spring components; do not hand-write
+  constructors for dependency injection.
+
+## Validation
+
+- Use `spring-boot-starter-validation` (Jakarta) and `@Valid` on controller method parameters.
+- Put constraints on request DTOs; surface violations via Spring’s `MethodArgumentNotValidException`
+  handling.
+
+## Database Migrations
+
+- Use Flyway SQL migrations under `src/main/resources/db/migration`.
+- Naming: `V{version or timestamp}__{short_description}.sql` (e.g., `V1__create_projects.sql`).
+- Primary keys use UUIDs with `gen_random_uuid()`; ensure `pgcrypto` is enabled in the DB.
+- Prefer additive migrations; avoid destructive changes without a deprecation plan.
+- Recommended: set `spring.jpa.hibernate.ddl-auto=validate` once Flyway schema is in place.
+
+## Naming
+
+- Packages: lowercase (e.g., `com.buildware.kbase.ingestion`).
+- Classes: PascalCase; methods/fields: camelCase; constants: UPPER_SNAKE_CASE.
+- Tests end with `Test` (e.g., `KnowledgeServiceTest`).
+
+## Spring & Java Conventions
+
+- Prefer constructor injection; avoid field injection.
+- Use `@Transactional` at service layer for write operations.
+- Avoid static utility classes for business logic; prefer components.
+- Return `Optional<T>` for absent values instead of nulls in APIs.
+
+## Formatting & Checks: Recommended Flow
+
+- Before commit: run `./gradlew checkstyleMain checkstyleTest` to verify style.
+- Pre-push/CI: run `./gradlew check` to execute Checkstyle and tests.
+- Checkstyle treats warnings as errors (build fails on violations).
 
 ## Testing Guidelines
 
@@ -72,52 +95,17 @@
   - Prefer using `@Mock` and `@InjectMocks` annotations if possible.
   - Add `@ExtendWith(MockitoExtension.class)` to the test class.
 - Use Instancio for generating test data (Prefer this over static created data).
-  - Use InstancioUtils `random(<Class>.class)` methods with static import to generate random data.
+  - Use InstancioUtils `random(Project.class)` methods with static import to generate random data.
   - Add `@ExtendWith(InstancioExtension.class)` to the test class.
   - Prefer Instancio built-ins; no external helper utilities required.
 
-### MockitoBean Migration
+## Exceptions & Logging
 
-- Use `@MockitoBean` from `org.springframework.boot.test.mock.mockito.MockitoBean` in all Spring
-  test slices instead of `@MockBean`.
-- `@MockBean` is deprecated and should not be used in new tests.
+- Use domain-specific exceptions; do not swallow exceptions.
+- Propagate with context; convert to meaningful HTTP errors in controllers.
+- Logging via SLF4J (`LoggerFactory.getLogger(...)`); no `printStackTrace`.
 
-### Coverage
+## Git Hygiene
 
-- Generate a coverage report: `./gradlew jacocoTestReport` →
-  `build/reports/jacoco/test/html/index.html`.
-- Aim for meaningful coverage of services and controllers; avoid chasing percentage metrics.
-
-## Commit & Pull Request Guidelines
-
-- Commits: follow Conventional Commits (e.g., `feat: add query endpoint`,
-  `fix: handle null projectCode`).
-- PRs must include: clear description, linked issue (if any), how to test (commands/curl), and notes
-  on config changes.
-- Ensure Gradle build and tests pass before requesting review.
-
-## Security & Configuration Tips
-
-- Never commit secrets; supply via env vars (e.g., `OPENAI_API_KEY`).
-- Local DB defaults differ: Docker stack uses DB `kbase`/password `user123`; adjust Spring
-  `datasource` via env.
-- If using pgvector, ensure `CREATE EXTENSION IF NOT EXISTS vector;` is enabled on the database.
-
-## Related Docs
-
-- `README.md`: project overview and endpoints.
-- `docs/architecture.md`: high-level design and module plan.
-- `docs/modulith.md`: Modulith modules and tests.
-- `docs/coding-guidelines.md`: full coding rules and conventions.
-- OpenAPI available at runtime via Swagger UI at `/swagger-ui/index.html`.
-- `src/main/resources/application.yaml`: runtime configuration defaults.
-- `local_stack/docker-compose.yaml`: local Postgres with pgvector.
-
-## Modulith Rules & SPI Usage
-
-- Do not use cross-module dependencies. Always depend on `spi` from other feature modules.
-- Provide adapters in the owning module to implement SPI interfaces (e.g., knowledge implements
-  `KnowledgeQueryPort`).
-- Do not export internal domain models across modules. Use view types under `spi.view` for
-  cross-module data (e.g., `KnowledgeHitView`).
-- MCP or other integration modules must only call into `spi`, never directly into feature services.
+- Conventional Commits (e.g., `feat: add query endpoint`).
+- Small, focused PRs with description, testing steps, and screenshots/logs where relevant.
