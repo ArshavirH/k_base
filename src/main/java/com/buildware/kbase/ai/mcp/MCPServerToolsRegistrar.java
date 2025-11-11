@@ -11,15 +11,15 @@ import org.springframework.stereotype.Component;
 public class MCPServerToolsRegistrar {
 
     private final KnowledgeMcpTool knowledgeMcpTool;
+    private final ProjectMcpTool projectMcpTool;
 
     @Bean
     public ToolCallbackProvider userTools() {
         return MethodToolCallbackProvider
             .builder()
-            .toolObjects(knowledgeMcpTool)
+            .toolObjects(knowledgeMcpTool, projectMcpTool)
             .build();
     }
 
 }
-
 
