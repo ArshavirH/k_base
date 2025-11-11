@@ -32,12 +32,13 @@
 - Packages: `com.buildware.kbase...` (lowercase); Classes: `PascalCase`; methods/fields:
   `camelCase`; constants: `UPPER_SNAKE_CASE`.
 - Prefer constructor injection; keep controllers thin and delegate to services.
+- Imports: avoid fully qualified class names in code; use imports unless resolving ambiguity.
 - Configuration lives in `application.yaml`; avoid hard‑coded secrets.
 - Full guide: see `docs/coding-guidelines.md`.
 
 ## Libraries & Patterns
 
-- Mapping: MapStruct for DTO ↔ domain mappers; keep mappers in `..mapper` packages.
+- Mapping: Use MapStruct for DTO ↔ domain mapping; do not hand-write mapping in controllers or services. Prefer dedicated mapper interfaces (package `..mapper` when present) and use `@BeanMapping(nullValuePropertyMappingStrategy = IGNORE)` with `@MappingTarget` for updates.
 - Boilerplate: Lombok (`@Getter`, `@Setter`, `@Builder`, etc.) — runtime optional; compile-time
   only.
 - Validation: `spring-boot-starter-validation` with `@Valid` and constraint annotations.
