@@ -20,6 +20,4 @@ public class MCPServerToolsRegistrar {
             .toolObjects(knowledgeMcpTool, projectMcpTool)
             .build();
     }
-
 }
-
