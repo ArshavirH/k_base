@@ -84,6 +84,15 @@ This launches the Inspector UI connected to the running Spring Boot MCP server, 
 
 ---
 
+## 🧰 MCP Tools
+
+- `knowledge.text`: Semantic search over a project's knowledge. Provide `projectCode`, `text`, optional `topK`. Returns ranked snippets with source to ground your answers.
+- `knowledge.ingest`: Persist long-form text as project knowledge. Provide `projectCode`, `content`, optional `metadata/tags`. Chunks and embeds content for future semantic retrieval.
+
+These tools are discoverable by MCP-compatible clients when the server is running. Use them to read from and write to the shared semantic memory layer during multi-step tasks.
+
+---
+
 ## ⚙️ Configuration
 
 | Key                                  | How to set (env)                 | Notes                             |
@@ -143,9 +152,8 @@ This launches the Inspector UI connected to the running Spring Boot MCP server, 
                ▼
  ┌──────────────────────────────┐
  │     MCP Knowledge Server      │
- │  - queryKnowledge(project,q)  │
- │  - persistContext(project,c)  │
- │  - syncSources(project)       │
+ │  - knowledge.text(project,q)  │
+ │  - knowledge.ingest(project,c)│
  └─────────────┬────────────────┘
                │
  ┌─────────────┴──────────────┐
@@ -164,19 +172,19 @@ This launches the Inspector UI connected to the running Spring Boot MCP server, 
 ## ⚙️ How It Works
 
 1. **Ingestion** – Markdown, PDFs, Jira tickets, and PRs are parsed and embedded into pgvector.
-2. **Retrieval** – Agents use MCP tools (`queryKnowledge`) to fetch semantically matched data.
-3. **Persistence** – Agents store new insights (`persistContext`) to extend the knowledge base.
-4. **Synchronization** – External project data stays up to date through periodic sync.
+2. **Retrieval** – Agents call `knowledge.text` to fetch semantically matched data, grounded by source.
+3. **Persistence** – Agents call `knowledge.ingest` to write summaries, insights, and notes back to memory.
+4. **Synchronization** – External project data stays up to date through periodic sync (planned connectors).
 
 ---
 
 ## 🧠 Agent Capabilities
 
-| Action           | Description                                                        |
-| ---------------- | ------------------------------------------------------------------ |
-| `queryKnowledge` | Retrieve relevant project knowledge for reasoning or coding tasks. |
-| `persistContext` | Write summaries, explanations, or decisions back to memory.        |
-| `syncSources`    | Re-index project data from connected systems (Jira, GitHub, etc.). |
+| Action              | Description                                                                    |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `knowledge.text`    | Retrieve relevant project knowledge for reasoning and coding tasks with source.|
+| `knowledge.ingest`  | Write summaries, decisions, and documents back to project memory.              |
+| `syncSources` (WIP) | Re-index project data from connected systems (Jira, GitHub, Docs).             |
 
 Agents can collaborate around the same persistent memory, sharing domain-specific vocabulary, design rules, and task knowledge.
 
@@ -193,14 +201,16 @@ Agents can collaborate around the same persistent memory, sharing domain-specifi
 
 ## 🔮 Vision & Roadmap
 
-| Phase           | Focus                                                  |
-| --------------- | ------------------------------------------------------ |
-| **MVP**         | Semantic ingestion + query by project                  |
-| **Next**        | Agent write-back for persistent context                |
-| **Integration** | Jira / GitHub / Slack sync connectors                  |
-| **Evolution**   | Automatic summarization & long-term memory compression |
-| **UX**          | Admin & observability dashboard                        |
-| **Future**      | Secure multi-tenant access & fine-grained auth         |
+| Phase             | Focus                                                                 |
+| ----------------- | --------------------------------------------------------------------- |
+| **MVP (Done)**    | Project-scoped semantic search (`knowledge.text`) and ingestion (`knowledge.ingest`). |
+| **Next**          | Source-grounded citations in results, improved ranking and `topK` handling. |
+| **Retrieval QoS** | Hybrid BM25 + dense search, reranking, better chunking & windowed context. |
+| **Memory**        | Auto-summarization, deduplication, TTLs/refresh for embeddings.        |
+| **Integrations**  | Jira, GitHub, Docs connectors for scheduled sync (read-only initially). |
+| **Security**      | Project ACLs, multi-tenant isolation, audit logging.                   |
+| **Observability** | Tool usage metrics, traces, failure analytics; admin dashboard.        |
+| **UX**            | Lightweight admin UI and knowledge browser.                            |
 
 ---
 
