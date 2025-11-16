@@ -119,3 +119,16 @@ tasks.named('jacocoTestReport') {
         html.required = true
     }
 }
+
+// Convenience run tasks for profiles
+tasks.register('bootRunMcp', org.springframework.boot.gradle.tasks.run.BootRun) {
+    group = 'application'
+    description = 'Run the app in MCP (headless stdio) profile.'
+    args '--spring.profiles.active=mcp'
+}
+
+tasks.register('bootRunServer', org.springframework.boot.gradle.tasks.run.BootRun) {
+    group = 'application'
+    description = 'Run the app in Server (HTTP) profile.'
+    args '--spring.profiles.active=server'
+}
