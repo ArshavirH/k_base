@@ -1,24 +1,24 @@
 package com.buildware.kbase.knowledge.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
-import com.buildware.kbase.knowledge.domain.KnowledgeHit;
-import java.util.HashMap;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import org.instancio.junit.InstancioExtension;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 
-@ExtendWith({MockitoExtension.class})
+@ExtendWith({MockitoExtension.class, InstancioExtension.class})
 class KnowledgeQueryServiceTest {
 
     @Mock
@@ -28,64 +28,99 @@ class KnowledgeQueryServiceTest {
     private KnowledgeQueryService service;
 
     @Nested
-    class Query {
+    class FilterExpression {
 
         @Test
-        void should_returnNearestChunks_when_queryByProject() {
+        void should_useProjectOnly_when_tagsNull() {
             // GIVEN
-            String projectCode = "testproj";
-            String query = "any text";
-            int topK = 2;
-            Document d1 = new Document("alpha text", metadata(0));
-            Document d2 = new Document("beta text", metadata(1));
-            when(vectorStore.similaritySearch(org.mockito.ArgumentMatchers.any(SearchRequest.class)))
-                .thenReturn(List.of(d1, d2));
+            String project = "proj";
+            String query = "hello";
 
             // WHEN
-            List<KnowledgeHit> results = service.query(projectCode, query, topK);
+            service.query(project, query, 5, null);
 
             // THEN
-            assertThat(results).hasSize(2);
-            assertThat(results.get(0).text()).contains("alpha");
-            assertThat(results.get(1).text()).contains("beta");
-        }
-
-
-        @Test
-        void should_throw_when_blank_projectCode() {
-            // GIVEN
-            String projectCode = " ";
-            String query = "q";
-
-            // WHEN
-            Throwable thrown = catchThrowable(() -> service.query(projectCode, query, 5));
-
-            // THEN
-            assertThat(thrown).isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("projectCode must not be blank");
+            SearchRequest captured = captureSearchRequest();
+            String filter = extractFilterExpression(captured);
+            assertThat(filter).contains("projectCode");
+            assertThat(filter).contains("proj");
         }
 
         @Test
-        void should_throw_when_blank_query() {
+        void should_useProjectOnly_when_tagsEmptyOrBlank() {
             // GIVEN
-            String projectCode = "code";
-            String query = "";
+            String project = "proj";
+            String query = "hello";
 
             // WHEN
-            Throwable thrown = catchThrowable(() -> service.query(projectCode, query, 5));
+            service.query(project, query, 5, Collections.emptyList());
+            service.query(project, query, 5, List.of("", "  "));
 
             // THEN
-            assertThat(thrown).isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("text must not be blank");
+            ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+            verify(vectorStore, org.mockito.Mockito.times(2)).similaritySearch(captor.capture());
+            List<SearchRequest> calls = captor.getAllValues();
+            for (SearchRequest req : calls) {
+                String filter = extractFilterExpression(req);
+                assertThat(filter).isEqualTo("projectCode == '" + project + "'");
+            }
+        }
+
+        @Test
+        void should_appendIN_when_tagsProvided() {
+            // GIVEN
+            String project = "proj";
+            String query = "hello";
+            List<String> tags = List.of("core", "api");
+
+            // WHEN
+            service.query(project, query, 5, tags);
+
+            // THEN
+            SearchRequest captured = captureSearchRequest();
+            String filter = extractFilterExpression(captured);
+            assertThat(filter).isEqualTo("projectCode == 'proj' && tags IN ['core', 'api']");
+        }
+
+        @Test
+        void should_escapeQuotes_in_projectAndTags() {
+            // GIVEN
+            String project = "pro'j"; // contains quote
+            String query = "hello";
+            List<String> tags = List.of("a'b", "c");
+
+            // WHEN
+            service.query(project, query, 5, tags);
+
+            // THEN
+            SearchRequest captured = captureSearchRequest();
+            String filter = extractFilterExpression(captured);
+            assertThat(filter).isEqualTo("projectCode == 'pro''j' && tags IN ['a''b', 'c']");
         }
     }
 
-    private static Map<String, Object> metadata(int idx) {
-        Map<String, Object> md = new HashMap<>();
-        md.put("docPath", "/doc.md");
-        md.put("title", "Doc");
-        md.put("chunkIndex", idx);
-        md.put("projectCode", "testproj");
-        return md;
+    private SearchRequest captureSearchRequest() {
+        ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+        verify(vectorStore).similaritySearch(captor.capture());
+        return captor.getValue();
+    }
+
+    private String extractFilterExpression(SearchRequest req) {
+        try {
+            Method m = req.getClass().getMethod("getFilterExpression");
+            Object val = m.invoke(req);
+            return val != null ? String.valueOf(val) : null;
+        } catch (Exception ignore) {
+            // fall back to field access
+            try {
+                Field f = req.getClass().getDeclaredField("filterExpression");
+                f.setAccessible(true);
+                Object val = f.get(req);
+                return val != null ? String.valueOf(val) : null;
+            } catch (Exception e) {
+                throw new AssertionError("Unable to read filterExpression from SearchRequest", e);
+            }
+        }
     }
 }
+

@@ -36,7 +36,7 @@ class KnowledgeSearchSPIImplTest {
         List<KnowledgeHit> hits = List.of(hit);
         KnowledgeHitView view = random(KnowledgeHitView.class);
 
-        when(service.query(input.projectCode(), input.text(), input.topK())).thenReturn(hits);
+        when(service.query(input.projectCode(), input.text(), input.topK(), input.tags())).thenReturn(hits);
         when(mapper.toViews(hits)).thenReturn(List.of(view));
 
         // WHEN

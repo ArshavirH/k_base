@@ -1,5 +1,8 @@
 package com.buildware.kbase.knowledge.service;
 
+import static com.buildware.kbase.knowledge.mapper.DocumentChunkMapper.MD_PROJECT_CODE;
+import static com.buildware.kbase.knowledge.mapper.DocumentChunkMapper.MD_TAGS;
+
 import com.buildware.kbase.knowledge.domain.KnowledgeHit;
 import java.util.List;
 import java.util.Map;
@@ -14,18 +17,44 @@ import org.springframework.stereotype.Service;
 @lombok.RequiredArgsConstructor
 public class KnowledgeQueryService {
 
+    private static final double DEFAULT_SIMILARITY_SCORE = 0.30;
+
     private final VectorStore vectorStore;
 
-    public List<KnowledgeHit> query(String projectCode, String query, int topK) {
+    public List<KnowledgeHit> query(String projectCode, String query, int topK, List<String> tags) {
         Validate.notBlank(projectCode, "projectCode must not be blank");
-        Validate.notBlank(query, "text must not be blank");
         var searchQuery = SearchRequest.builder()
             .query(query)
             .topK(topK > 0 ? Math.min(topK, 50) : 5)
-            .filterExpression("projectCode == '%s'".formatted(projectCode))
+            .similarityThreshold(DEFAULT_SIMILARITY_SCORE)
+            .filterExpression(buildFilterExpression(projectCode, tags))
             .build();
         List<Document> docs = vectorStore.similaritySearch(searchQuery);
         return docs.stream().map(KnowledgeQueryService::toHit).collect(Collectors.toList());
+    }
+
+    private static String buildFilterExpression(String projectCode, List<String> tags) {
+        String base = "%s == '%s'".formatted(MD_PROJECT_CODE, escape(projectCode));
+
+        if (tags == null || tags.isEmpty()) {
+            return base;
+        }
+        String values = tags.stream()
+            .filter(s -> s != null && !s.isBlank())
+            .map(KnowledgeQueryService::quote)
+            .collect(Collectors.joining(", "));
+        if (values.isBlank()) {
+            return base;
+        }
+        return base + " && " + MD_TAGS + " IN [" + values + "]";
+    }
+
+    private static String quote(String s) {
+        return "'" + escape(s) + "'";
+    }
+
+    private static String escape(String s) {
+        return s.replace("'", "''");
     }
 
     private static KnowledgeHit toHit(Document doc) {

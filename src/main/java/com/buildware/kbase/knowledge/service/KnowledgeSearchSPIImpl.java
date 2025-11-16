@@ -20,6 +20,6 @@ public class KnowledgeSearchSPIImpl implements KnowledgeSearchSPI {
 
     @Override
     public List<KnowledgeHitView> semanticSearch(KnowledgeQuery query) {
-        return mapper.toViews(service.query(query.projectCode(), query.text(), query.topK()));
+        return mapper.toViews(service.query(query.projectCode(), query.text(), query.topK(), query.tags()));
     }
 }
