@@ -1,0 +1,40 @@
+spring:
+  main:
+    # Standard web server mode
+    web-application-type: servlet
+    # Leave banner as default (console); set explicitly if desired
+    # banner-mode: console
+
+# Balanced logging for server mode
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate: INFO
+    com.buildware.kbase: INFO
+
+# Explicit server port (inherits from base if not overridden)
+server:
+  port: 8080
+
+# Typical actuator exposure in server mode
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,configprops,metrics
+
+# API docs enabled in server mode
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+# Disable MCP server in web mode to keep concerns separate
+spring:
+  ai:
+    mcp:
+      server:
+        enabled: false
+
