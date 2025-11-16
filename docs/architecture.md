@@ -2,20 +2,21 @@
 
 > Project: `kbase` — Knowledge base server for multi-project AI agents (Spring Boot + Spring AI + pgvector)
 
-This document reflects the current implementation in the repository.
+This document reflects the current implementation in the repository. It covers runtime profiles (Server vs MCP), module boundaries, data flows, and public SPI contracts.
 
 ---
 
 ## 1) System Components
 
-| Layer          | Description                                             | Key Packages                      |
-| -------------- | ------------------------------------------------------- | --------------------------------- |
-| Core           | Projects catalog + vector search services               | `project`, `knowledge`            |
-| API            | REST controllers + DTO mapping                          | `project.web`, `knowledge.web`    |
-| Config         | OpenAPI, CORS                                          | `config`                          |
-| SPI            | Cross-module contracts (views nested)                   | `spi` (`ProjectInfoSPI`, `KnowledgeSearchSPI`) |
+| Layer   | Description                                                | Key Packages |
+| ------- | ---------------------------------------------------------- | ------------ |
+| Core    | Projects catalog; knowledge query + persistence services   | `project`, `knowledge` |
+| API     | REST controllers + DTO mapping                             | `project.web`, `knowledge.web` |
+| Config  | Spring profiles, OpenAPI, management                       | `src/main/resources`, `config` |
+| SPI     | Cross-module contracts (records for views/commands)        | `spi` (`ProjectInfoSPI`, `KnowledgeSearchSPI`, `KnowledgeIngestionSPI`) |
+| MCP     | Spring AI MCP server + tools (stdio transport)             | `ai.mcp` |
 
-Spring Modulith annotations in `package-info.java` document module boundaries. See `docs/modulith.md`.
+Spring Modulith annotations in `package-info.java` document module boundaries; feature modules implement their own SPIs. See `docs/modulith.md`.
 
 ---
 
@@ -32,11 +33,18 @@ com.buildware.kbase
 │   ├── service/ ProjectService.java
 │   └── web/ ProjectController.java
 ├── knowledge/
-│   ├── service/ KnowledgeQueryService.java, KnowledgeSearchSPIImpl.java
-│   └── web/ KnowledgeController.java, KnowledgeApiMapper.java
+│   ├── domain/ IngestDocument.java (record)
+│   ├── mapper/ DocumentChunkMapper.java, KnowledgeIngestionMapper.java
+│   ├── service/
+│   │   ├── KnowledgeQueryService.java
+│   │   ├── KnowledgeSearchSPIImpl.java (implements KnowledgeSearchSPI)
+│   │   ├── KnowledgePersistenceService.java
+│   │   └── KnowledgePersistenceSPIImpl.java (implements KnowledgeIngestionSPI)
+│   └── web/ KnowledgeController.java, KnowledgeIngestDTO.java, KnowledgeIngestResponseDTO.java
 └── spi/
     ├── ProjectInfoSPI.java
-    └── KnowledgeSearchSPI.java
+    ├── KnowledgeSearchSPI.java
+    └── KnowledgeIngestionSPI.java
 ```
 
 Additional adapters
@@ -59,15 +67,34 @@ Client → POST /knowledge/query (projectCode, query, topK)
 VectorStore.similaritySearch(filter by projectCode)
   ↓
 DTO mapping (text, score, docPath, title, chunkIndex)
+
+### Ingestion (Text → Chunks → VectorStore)
+
+```
+Client (REST or MCP `knowledge.ingest`) → KnowledgeController/KnowledgeMcpTool
+  ↓
+KnowledgeIngestionSPI.ingest(KnowledgeIngestCommand)
+  ↓  (module adapter)
+KnowledgePersistenceService.ingestDocument(IngestDocument)
+  ↓
+DocumentChunkMapper.toDocuments(...) → VectorStore.add(List<Document>)
+  ↓
+KnowledgeIngestSummaryView (projectCode, ingestedChunks)
+```
 ```
 
 ---
 
-## 4) Endpoints
+## 4) Endpoints & MCP Tools
 
 - `POST /knowledge/query` — semantic search
+- `POST /knowledge/ingest` — ingest long-form text into project knowledge
 - `GET /projects` — list projects (optionally include confidential)
 - `GET /projects/{code}` — get project by code
+
+MCP Tools (stdio):
+- `knowledge.text` — semantic search (supports metadata filters and tags)
+- `knowledge.ingest` — persist long-form text (supports metadata/tags)
 
 Base route prefixes: `/knowledge` and `/projects`.
 
@@ -82,24 +109,32 @@ OpenAPI/Swagger is available at `/swagger-ui/index.html`.
 | `spring.ai.openai.api-key` | API key for embeddings                | `OPENAI_API_KEY`                  |
 | `spring.ai.vector-store.pgvector.dimensions` | Embedding dimensions          | `1536` (text-embedding-3-small)   |
 | `server.port`              | HTTP port                             | `8080`                            |
+| `spring.profiles.default`  | Default runtime profile               | `server`                          |
 
 Flyway SQL migrations live under `src/main/resources/db/migration`.
 
 ---
 
-## 6) Query Flow Only
+## 6) Runtime Profiles
 
-Current scope focuses on serving semantic queries over already-indexed content.
+- Server Profile (`application-server.yaml`)
+  - `web-application-type: servlet`, Swagger + Actuator enabled, INFO logs, MCP server disabled.
+- MCP Profile (`application-mcp.yaml`)
+  - `web-application-type: none`, banner off, quiet logs, Swagger off, MCP server enabled over stdio.
+- Base (`application.yaml`)
+  - Shared DB, vector, and OpenAI config; `spring.profiles.default=server`.
 
-## 🧩 **8. Extension Points**
+## 🧩 **8. SPI & Extension Points**
 
-| Area           | Description                                   |
-| -------------- | --------------------------------------------- |
-| **Auth Layer** | Add API key or JWT for agent access           |
-| **Versioning** | Version per document and project release      |
-| **Cache**      | Add Redis for embedding result caching        |
-| **Analytics**  | Add metrics: query volume, latency, recall    |
-| **Admin UI**   | Lightweight React/Next.js dashboard (Phase 3) |
+| Area                      | Description                                                |
+| ------------------------- | ---------------------------------------------------------- |
+| KnowledgeSearchSPI        | Query SPI used by external modules and MCP tools          |
+| KnowledgeIngestionSPI     | Command SPI to ingest long-form documents                 |
+| ProjectInfoSPI            | Project lookup used by knowledge services                 |
+| Auth Layer                | Add API key/JWT for agent access                          |
+| Cache                     | Redis for embedding/result caching                        |
+| Analytics                 | Metrics: query volume, latency, recall                    |
+| Admin UI                  | Lightweight dashboard for management                      |
 
 ---
 

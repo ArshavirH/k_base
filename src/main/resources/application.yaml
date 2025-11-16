@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  profiles:
+    default: server
   application:
     name: kbase
   datasource:
@@ -58,14 +60,6 @@ management:
   metrics.distribution.percentiles-histogram.http.server.requests: true
   endpoints.web.exposure.include: health,info,env,configprops,metrics,custom
 
-# springdoc is configured per-profile
-
 mcp:
   knowledge:
     docs-path: /Users/arshavirhunanyan/projects/personal/k_base/docs
-
-#logging:
-#  level:
-#    root: ERROR
-#    org.springframework: ERROR
-#    org.hibernate: ERROR
