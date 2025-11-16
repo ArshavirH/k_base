@@ -2,9 +2,6 @@ server:
   port: 8080
 
 spring:
-#  main:
-#    web-application-type: servlet
-#    banner-mode: off
   application:
     name: kbase
   datasource:
@@ -35,7 +32,7 @@ spring:
         resource-change-notification: true
         tool-change-notification: true
         prompt-change-notification: true
-        enabled: true
+        enabled: false
     openai:
       api-key: ${OPENAI_API_KEY}
       embedding:
@@ -61,11 +58,7 @@ management:
   metrics.distribution.percentiles-histogram.http.server.requests: true
   endpoints.web.exposure.include: health,info,env,configprops,metrics,custom
 
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
+# springdoc is configured per-profile
 
 mcp:
   knowledge:
