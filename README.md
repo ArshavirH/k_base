@@ -61,22 +61,6 @@ To run in MCP mode (headless, no HTTP server):
 
 ---
 
-## 📚 Endpoints
-
-- `POST /knowledge/query` — semantic search within a project
-- `POST /knowledge/ingest` — ingest a long document (chunk + embed) into a project
-- `GET /projects` — list projects (query: `includeConfidential`)
-- `GET /projects/{code}` — get project by code
-- `POST /projects` — create project
-- `PUT /projects/{code}` — update project
-- `DELETE /projects/{code}` — delete project
-- `GET /mcp/tools` — list available MCP tools
-- `PUT /mcp/tools/{name}` — enable/disable a tool
-
-Swagger UI documents these at `/swagger-ui/index.html`.
-
----
-
 ## 🧪 Test via MCP Inspector
 
 Use the MCP Inspector to exercise the server as an MCP tool host after building the jar. Pass the MCP profile so the app runs headless over stdio:
@@ -98,7 +82,7 @@ For MCP-compatible clients that use a static configuration file (example JSON), 
       "command": "java",
       "args": [
         "-jar",
-        "/absolute/path/to/build/libs/kbase-1.0.0.jar",
+        "/path/to/kbase-*.jar",
         "--spring.profiles.active=mcp"
       ],
       "transport": "stdio"
@@ -107,11 +91,11 @@ For MCP-compatible clients that use a static configuration file (example JSON), 
 }
 ```
 
-Adjust the jar path to your local build output. When started by the client, the server runs in MCP mode (no HTTP server, quiet logs, banner off).
+Note: Ensure the PostgreSQL database with pgvector is running and reachable before connecting via MCP. For local development, start the stack with `docker compose -f local_stack/docker-compose.yaml up -d`, or point `SPRING_DATASOURCE_*` env vars to an available database.
 
 ---
 
-## 🧰 MCP Tools
+## MCP Tools
 
 - `knowledge.text`: Semantic search over a project's knowledge. Provide `projectCode`, `text`, optional `topK`, optional metadata filters, optional `tags`. Returns ranked snippets with source to ground your answers. Filters match ALL provided metadata key/value pairs; tags require all requested values to be present in the document's `tags` metadata.
 - `knowledge.ingest`: Persist long-form text as project knowledge. Provide `projectCode`, `content`, optional `metadata/tags`. Chunks and embeds content for future semantic retrieval.
@@ -132,7 +116,7 @@ These tools are discoverable by MCP-compatible clients when the server is runnin
 
 ---
 
-## 🧰 Project Technologies
+## Project Technologies
 
 - Java 21 + Spring Boot 3.x
 - Spring AI (embeddings, vector operations)
@@ -157,7 +141,7 @@ These tools are discoverable by MCP-compatible clients when the server is runnin
 
 ---
 
-## 💡 Core Purpose
+##  Core Purpose
 
 | Goal                        | Description                                                                           |
 | --------------------------- | ------------------------------------------------------------------------------------- |
@@ -169,7 +153,7 @@ These tools are discoverable by MCP-compatible clients when the server is runnin
 
 ---
 
-## 🧩 Concept Diagram
+## Concept Diagram
 
 ```plaintext
  ┌──────────────────────────┐
@@ -177,24 +161,19 @@ These tools are discoverable by MCP-compatible clients when the server is runnin
  │ (Copilot, Codex, Claude) │
  └─────────────┬────────────┘
                │
-        MCP Protocol (Streamable HTTP)
+  MCP Protocol (Streamable HTTP)
                │
                ▼
- ┌──────────────────────────────┐
+ ┌───────────────────────────────┐
  │     MCP Knowledge Server      │
  │  - knowledge.text(project,q)  │
  │  - knowledge.ingest(project,c)│
- └─────────────┬────────────────┘
+ └─────────────┬─────────────────┘
                │
- ┌─────────────┴──────────────┐
- │        pgvector DB         │
- │  (docs, embeddings, memory)│
- └─────────────┬──────────────┘
-               │
-     ┌────────────────────────┐
-     │  External Sources (API) │
-     │  Jira, GitHub, Docs     │
-     └────────────────────────┘
+ ┌─────────────┴─────────────────┐
+ │        pgvector DB            │
+ │  (docs, embeddings, memory)   │
+ └───────────────────────────────┘
 ```
 
 ---
@@ -212,7 +191,7 @@ MCP-enabled agents share the same memory:
 
 ---
 
-## 🧠 Agent Capabilities
+## Agent Capabilities
 
 | Action              | Description                                                                    |
 | ------------------- | ------------------------------------------------------------------------------ |
@@ -224,27 +203,14 @@ Agents can collaborate around the same persistent memory, sharing domain-specifi
 
 ---
 
-## 🌱 Example Use Cases
+## Example Use Cases
 
+* **Collaboration & Multi-Agent:** Multiple agents, applications, and chat sessions work against the same
+  project knowledge base to enable coordinated workflows, handoffs, and centralized memory management.
 * **Development:** Codex agent learns project conventions and architectures.
 * **Documentation:** Docs agent updates long-term knowledge after changes.
 * **PM Tools:** Jira or GitHub data flows into the shared memory automatically.
 * **Research/Analysis:** Agents correlate tickets, commits, and docs to summarize progress.
-
----
-
-## 🔮 Vision & Roadmap
-
-| Phase             | Focus                                                                 |
-| ----------------- | --------------------------------------------------------------------- |
-| **MVP (Done)**    | Project-scoped semantic search (`knowledge.text`) and ingestion (`knowledge.ingest`). |
-| **Next**          | Source-grounded citations in results, improved ranking and `topK` handling. |
-| **Retrieval QoS** | Hybrid BM25 + dense search, reranking, better chunking & windowed context. |
-| **Memory**        | Auto-summarization, deduplication, TTLs/refresh for embeddings.        |
-| **Integrations**  | Jira, GitHub, Docs connectors for scheduled sync (read-only initially). |
-| **Security**      | Project ACLs, multi-tenant isolation, audit logging.                   |
-| **Observability** | Tool usage metrics, traces, failure analytics; admin dashboard.        |
-| **UX**            | Lightweight admin UI and knowledge browser.                            |
 
 ---
 
