@@ -86,7 +86,7 @@ This launches the Inspector UI connected to the running Spring Boot MCP server, 
 
 ## 🧰 MCP Tools
 
-- `knowledge.text`: Semantic search over a project's knowledge. Provide `projectCode`, `text`, optional `topK`. Returns ranked snippets with source to ground your answers.
+- `knowledge.text`: Semantic search over a project's knowledge. Provide `projectCode`, `text`, optional `topK`, optional metadata filters, optional `tags`. Returns ranked snippets with source to ground your answers. Filters match ALL provided metadata key/value pairs; tags require all requested values to be present in the document's `tags` metadata.
 - `knowledge.ingest`: Persist long-form text as project knowledge. Provide `projectCode`, `content`, optional `metadata/tags`. Chunks and embeds content for future semantic retrieval.
 
 These tools are discoverable by MCP-compatible clients when the server is running. Use them to read from and write to the shared semantic memory layer during multi-step tasks.
@@ -173,7 +173,7 @@ These tools are discoverable by MCP-compatible clients when the server is runnin
 
 1. **Ingestion** – Markdown, PDFs, Jira tickets, and PRs are parsed and embedded into pgvector.
 2. **Retrieval** – Agents call `knowledge.text` to fetch semantically matched data, grounded by source.
-3. **Persistence** – Agents call `knowledge.ingest` to write summaries, insights, and notes back to memory.
+3. **Persistence** – Agents call `knowledge.ingest` to write summaries, insights, and notes back to memory (include tags under metadata as needed).
 4. **Synchronization** – External project data stays up to date through periodic sync (planned connectors).
 
 ---
