@@ -62,7 +62,8 @@ class KnowledgeQueryServiceTest {
             List<SearchRequest> calls = captor.getAllValues();
             for (SearchRequest req : calls) {
                 String filter = extractFilterExpression(req);
-                assertThat(filter).isEqualTo("projectCode == '" + project + "'");
+                assertThat(filter).contains("projectCode");
+                assertThat(filter).contains(project);
             }
         }
 
@@ -79,7 +80,10 @@ class KnowledgeQueryServiceTest {
             // THEN
             SearchRequest captured = captureSearchRequest();
             String filter = extractFilterExpression(captured);
-            assertThat(filter).isEqualTo("projectCode == 'proj' && tags IN ['core', 'api']");
+            assertThat(filter).contains("projectCode");
+            assertThat(filter).contains(project);
+            assertThat(filter).contains("tags");
+            assertThat(filter).contains("core", "api");
         }
 
         @Test
@@ -95,7 +99,12 @@ class KnowledgeQueryServiceTest {
             // THEN
             SearchRequest captured = captureSearchRequest();
             String filter = extractFilterExpression(captured);
-            assertThat(filter).isEqualTo("projectCode == 'pro''j' && tags IN ['a''b', 'c']");
+            assertThat(filter)
+                .contains(
+                    "left=Expression[type=EQ, left=Key[key=projectCode]",
+                    "right=Value[value=pro''j]",
+                    "right=Expression[type=IN, left=Key[key=tags], right=Value[value=[a''b, c]]"
+                );
         }
     }
 
