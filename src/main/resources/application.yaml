@@ -2,8 +2,9 @@ server:
   port: 8080
 
 spring:
-  main:
-    web-application-type: servlet
+#  main:
+#    web-application-type: servlet
+#    banner-mode: off
   application:
     name: kbase
   datasource:
@@ -70,7 +71,8 @@ mcp:
   knowledge:
     docs-path: /Users/arshavirhunanyan/projects/personal/k_base/docs
 
-logging:
-  level:
-    root: INFO
-    com.buildware.kbase: INFO
+#logging:
+#  level:
+#    root: ERROR
+#    org.springframework: ERROR
+#    org.hibernate: ERROR
