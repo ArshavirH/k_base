@@ -1,11 +1,11 @@
-# 🧠 MCP Knowledge Server
+# MCP Knowledge Server
 
 > A persistent, semantic memory layer for AI agents and human teams.
 > Built with Spring Boot, Spring AI, and pgvector.
 
 ---
 
-## 🌍 Overview
+## Overview
 
 The **MCP Knowledge Server** provides a shared, intelligent knowledge base that allows AI agents and developers to **store, retrieve, and evolve project context** over time.
 
@@ -13,12 +13,12 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 - Prereqs: Java 21, Docker, Docker Compose, Node.js (for MCP inspector)
 - Start Postgres (pgvector): `docker compose -f local_stack/docker-compose.yaml up -d`
 - Build app: `./gradlew clean build`
-- Run app (Server mode): `SPRING_PROFILES_ACTIVE=server ./gradlew bootRun` (or run the built jar with `--spring.profiles.active=server`)
+- Run app: `./gradlew bootRun` (default profile: `server`)
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 
 ---
@@ -47,16 +47,16 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 
 ## ▶️ Run Locally
 
-- Using Gradle (Server mode): `./gradlew bootRunServer` (or `SPRING_PROFILES_ACTIVE=server ./gradlew bootRun`)
-- Using Jar (Server mode):
+- Using Gradle (Server mode default): `./gradlew bootRun`
+- Using Jar (Server mode default):
   - Build: `./gradlew clean build`
-  - Run: `java -jar build/libs/kbase-*.jar --spring.profiles.active=server`
+  - Run: `java -jar build/libs/kbase-*.jar`
 - HTTP Port: `8080`
 - OpenAPI (Swagger): `http://localhost:8080/swagger-ui/index.html`
 
 To run in MCP mode (headless, no HTTP server):
 
-- Using Gradle (MCP mode): `./gradlew bootRunMcp` (or `SPRING_PROFILES_ACTIVE=mcp ./gradlew bootRun`)
+- Using Gradle (MCP mode): `SPRING_PROFILES_ACTIVE=mcp ./gradlew bootRun`
 - Using Jar (MCP mode): `java -jar build/libs/kbase-*.jar --spring.profiles.active=mcp`
 
 ---
@@ -128,6 +128,7 @@ These tools are discoverable by MCP-compatible clients when the server is runnin
 | `spring.ai.vector-store.pgvector.*`  | env overrides supported           | Dimensions default to `1536`      |
 | `spring.profiles.active=server`      | set via env or `--args`           | Enables HTTP server + Swagger     |
 | `spring.profiles.active=mcp`         | set via env or `--args`           | Headless MCP over stdio           |
+| `spring.profiles.default=server`     | set in `application.yaml`         | Default profile for runs without overrides |
 
 ---
 
@@ -204,6 +205,10 @@ These tools are discoverable by MCP-compatible clients when the server is runnin
 2. **Retrieval** – Agents call `knowledge.text` to fetch semantically matched data, grounded by source.
 3. **Persistence** – Agents call `knowledge.ingest` to write summaries, insights, and notes back to memory (include tags under metadata as needed).
 4. **Synchronization** – External project data stays up to date through periodic sync (planned connectors).
+
+MCP-enabled agents share the same memory:
+- Any MCP-compatible agent can connect (IDE copilots, terminal/CLI assistants, chat UIs, research/planning agents) — not just coding agents.
+- All connected agents read/write via the same MCP tools (`knowledge.text`, `knowledge.ingest`), sharing one project-scoped semantic memory across tools.
 
 ---
 
