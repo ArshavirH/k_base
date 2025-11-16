@@ -1,0 +1,39 @@
+spring:
+  main:
+    # Run headless for MCP: no embedded server, no banner
+    web-application-type: none
+    banner-mode: off
+
+# Keep logs quiet in MCP mode
+logging:
+  level:
+    root: ERROR
+    org.springframework: ERROR
+    org.hibernate: ERROR
+
+# Disable HTTP server concerns explicitly (harmless with web-application-type none)
+server:
+  port: 0
+
+# Keep actuator and API docs silent in MCP mode
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  tracing:
+    enabled: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# Ensure MCP server stays enabled in this profile (in case defaults change)
+spring:
+  ai:
+    mcp:
+      server:
+        enabled: true
+
