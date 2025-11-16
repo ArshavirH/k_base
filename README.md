@@ -47,7 +47,7 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 
 ## ▶️ Run Locally
 
-- Using Gradle (Server mode): `SPRING_PROFILES_ACTIVE=server ./gradlew bootRun`
+- Using Gradle (Server mode): `./gradlew bootRunServer` (or `SPRING_PROFILES_ACTIVE=server ./gradlew bootRun`)
 - Using Jar (Server mode):
   - Build: `./gradlew clean build`
   - Run: `java -jar build/libs/kbase-*.jar --spring.profiles.active=server`
@@ -56,7 +56,7 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 
 To run in MCP mode (headless, no HTTP server):
 
-- Using Gradle (MCP mode): `SPRING_PROFILES_ACTIVE=mcp ./gradlew bootRun`
+- Using Gradle (MCP mode): `./gradlew bootRunMcp` (or `SPRING_PROFILES_ACTIVE=mcp ./gradlew bootRun`)
 - Using Jar (MCP mode): `java -jar build/libs/kbase-*.jar --spring.profiles.active=mcp`
 
 ---
