@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.buildware.kbase.knowledge.domain.IngestDocument;
+import com.buildware.kbase.knowledge.mapper.KnowledgeIngestionMapper;
 import com.buildware.kbase.spi.KnowledgeIngestionSPI.KnowledgeIngestCommand;
 import com.buildware.kbase.spi.KnowledgeIngestionSPI.KnowledgeIngestSummaryView;
 import java.util.List;
@@ -15,7 +16,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.buildware.kbase.knowledge.mapper.KnowledgeIngestionMapper;
 
 @ExtendWith(MockitoExtension.class)
 class KnowledgePersistenceSPIImplTest {
