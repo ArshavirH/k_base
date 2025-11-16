@@ -18,7 +18,7 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 - Prereqs: Java 21, Docker, Docker Compose, Node.js (for MCP inspector)
 - Start Postgres (pgvector): `docker compose -f local_stack/docker-compose.yaml up -d`
 - Build app: `./gradlew clean build`
-- Run app: `./gradlew bootRun` (or run the built jar)
+- Run app (Server mode): `SPRING_PROFILES_ACTIVE=server ./gradlew bootRun` (or run the built jar with `--spring.profiles.active=server`)
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 
 ---
@@ -47,12 +47,17 @@ Instead of re-feeding long prompts or losing context between sessions, agents ca
 
 ## ▶️ Run Locally
 
-- Using Gradle: `./gradlew bootRun`
-- Using Jar:
+- Using Gradle (Server mode): `SPRING_PROFILES_ACTIVE=server ./gradlew bootRun`
+- Using Jar (Server mode):
   - Build: `./gradlew clean build`
-  - Run: `java -jar build/libs/kbase-*.jar`
+  - Run: `java -jar build/libs/kbase-*.jar --spring.profiles.active=server`
 - HTTP Port: `8080`
 - OpenAPI (Swagger): `http://localhost:8080/swagger-ui/index.html`
+
+To run in MCP mode (headless, no HTTP server):
+
+- Using Gradle (MCP mode): `SPRING_PROFILES_ACTIVE=mcp ./gradlew bootRun`
+- Using Jar (MCP mode): `java -jar build/libs/kbase-*.jar --spring.profiles.active=mcp`
 
 ---
 
@@ -74,13 +79,35 @@ Swagger UI documents these at `/swagger-ui/index.html`.
 
 ## 🧪 Test via MCP Inspector
 
-Use the MCP Inspector to exercise the server as an MCP tool host after building the jar:
+Use the MCP Inspector to exercise the server as an MCP tool host after building the jar. Pass the MCP profile so the app runs headless over stdio:
 
 ```
-npx -y @modelcontextprotocol/inspector java -jar build/libs/kbase-*.jar
+npx -y @modelcontextprotocol/inspector java -jar build/libs/kbase-*.jar --spring.profiles.active=mcp
 ```
 
-This launches the Inspector UI connected to the running Spring Boot MCP server, allowing you to invoke tools (e.g., knowledge query) interactively.
+This launches the Inspector UI connected to the running Spring Boot MCP server (stdio transport), allowing you to invoke tools (e.g., `knowledge.text`, `knowledge.ingest`) interactively.
+
+### MCP Client Configuration Example
+
+For MCP-compatible clients that use a static configuration file (example JSON), point to the Java command with the MCP profile and stdio transport:
+
+```json
+{
+  "mcpServers": {
+    "kbase": {
+      "command": "java",
+      "args": [
+        "-jar",
+        "/absolute/path/to/build/libs/kbase-1.0.0.jar",
+        "--spring.profiles.active=mcp"
+      ],
+      "transport": "stdio"
+    }
+  }
+}
+```
+
+Adjust the jar path to your local build output. When started by the client, the server runs in MCP mode (no HTTP server, quiet logs, banner off).
 
 ---
 
@@ -99,6 +126,8 @@ These tools are discoverable by MCP-compatible clients when the server is runnin
 | ------------------------------------ | --------------------------------- | --------------------------------- |
 | `spring.ai.openai.api-key`           | `OPENAI_API_KEY`                  | Required for embeddings           |
 | `spring.ai.vector-store.pgvector.*`  | env overrides supported           | Dimensions default to `1536`      |
+| `spring.profiles.active=server`      | set via env or `--args`           | Enables HTTP server + Swagger     |
+| `spring.profiles.active=mcp`         | set via env or `--args`           | Headless MCP over stdio           |
 
 ---
 
