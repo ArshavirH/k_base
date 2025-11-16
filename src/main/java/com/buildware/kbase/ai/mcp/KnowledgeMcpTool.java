@@ -1,8 +1,8 @@
 package com.buildware.kbase.ai.mcp;
 
-import com.buildware.kbase.spi.KnowledgeMaintenanceSPI;
-import com.buildware.kbase.spi.KnowledgeMaintenanceSPI.IngestRequest;
-import com.buildware.kbase.spi.KnowledgeMaintenanceSPI.IngestResponse;
+import com.buildware.kbase.spi.KnowledgeIngestionSPI;
+import com.buildware.kbase.spi.KnowledgeIngestionSPI.KnowledgeIngestCommand;
+import com.buildware.kbase.spi.KnowledgeIngestionSPI.KnowledgeIngestSummaryView;
 import com.buildware.kbase.spi.KnowledgeSearchSPI;
 import com.buildware.kbase.spi.KnowledgeSearchSPI.KnowledgeHitView;
 import com.buildware.kbase.spi.KnowledgeSearchSPI.KnowledgeQuery;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 public class KnowledgeMcpTool {
 
     private final KnowledgeSearchSPI knowledgeSearchSPI;
-    private final KnowledgeMaintenanceSPI maintenanceSPI;
+    private final KnowledgeIngestionSPI maintenanceSPI;
 
     /**
      * Perform a semantic search within a project's knowledge base.
@@ -34,8 +34,8 @@ public class KnowledgeMcpTool {
         name = "knowledge.text",
         description = """
             Semantic search over a project's knowledge.
-            Provide projectCode, text, optional topK.
-             Returns ranked snippets with source to ground your answers.
+            Provide projectCode, text, optional topK, optional tags.
+            Returns ranked snippets with source to ground your answers.
             """
     )
     public List<KnowledgeHitView> semanticSearch(@Valid KnowledgeQuery input) {
@@ -50,7 +50,7 @@ public class KnowledgeMcpTool {
             Chunks and embeds content for future semantic retrieval.
             """
     )
-    public IngestResponse ingest(@Valid IngestRequest request) {
+    public KnowledgeIngestSummaryView ingest(@Valid KnowledgeIngestCommand request) {
         return maintenanceSPI.ingest(request);
     }
 }

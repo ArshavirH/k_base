@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.buildware.kbase.ai.mcp.KnowledgeMcpTool;
+import com.buildware.kbase.spi.KnowledgeIngestionSPI;
+import com.buildware.kbase.spi.KnowledgeIngestionSPI.KnowledgeIngestCommand;
+import com.buildware.kbase.spi.KnowledgeIngestionSPI.KnowledgeIngestSummaryView;
 import com.buildware.kbase.spi.KnowledgeSearchSPI;
 import com.buildware.kbase.spi.KnowledgeSearchSPI.KnowledgeHitView;
 import com.buildware.kbase.spi.KnowledgeSearchSPI.KnowledgeQuery;
@@ -21,6 +24,9 @@ class KnowledgeMcpToolTest {
 
     @Mock
     private KnowledgeSearchSPI queryPort;
+
+    @Mock
+    private KnowledgeIngestionSPI maintenancePort;
 
     @InjectMocks
     private KnowledgeMcpTool tool;
@@ -43,5 +49,20 @@ class KnowledgeMcpToolTest {
         assertThat(first.title()).isEqualTo(expected.title());
         assertThat(first.docPath()).isEqualTo(expected.docPath());
         assertThat(first.chunkIndex()).isEqualTo(expected.chunkIndex());
+    }
+
+    @Test
+    void should_ingestDocument_when_validRequest() {
+        // GIVEN
+        KnowledgeIngestCommand req = random(KnowledgeIngestCommand.class);
+        KnowledgeIngestSummaryView expected = random(KnowledgeIngestSummaryView.class);
+        when(maintenancePort.ingest(req)).thenReturn(expected);
+
+        // WHEN
+        KnowledgeIngestSummaryView actual = tool.ingest(req);
+
+        // THEN
+        assertThat(actual.projectCode()).isEqualTo(expected.projectCode());
+        assertThat(actual.ingestedChunks()).isEqualTo(expected.ingestedChunks());
     }
 }

@@ -19,7 +19,8 @@ public interface KnowledgeSearchSPI {
     record KnowledgeQuery(
         @NotBlank String projectCode,
         @NotBlank String text,
-        Integer topK
+        Integer topK,
+        List<String> tags
     ) {
 
     }
@@ -34,5 +35,4 @@ public interface KnowledgeSearchSPI {
 
     }
 }
-
 
